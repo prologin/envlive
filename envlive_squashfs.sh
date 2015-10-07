@@ -127,7 +127,7 @@ ln -s /dev/${LOOP} /dev/mapper/${LOOP}
 syslinux-install_update -iam -c ${PROLOLIVE_DIR}
 rm /dev/mapper/${LOOP}
 
-cp ${LOGOFILE} ${PROLOLIVE_DIR}/boot/syslinux/logo.png
+cp ${LOGOFILE} ${PROLOLIVE_DIR}/boot/syslinux/${LOGOFILE}
 cat > ${PROLOLIVE_DIR}/boot/syslinux/syslinux.cfg <<EOF
 DEFAULT arch
 PROMPT 0
@@ -135,7 +135,7 @@ TIMEOUT 10
 UI vesamenu.c32
 
 MENU TITLE Arch Linux
-MENU BACKGROUND logo.png
+MENU BACKGROUND ${LOGOFILE}
 MENU COLOR border       30;44   #40ffffff #a0000000 std
 MENU COLOR title        1;36;44 #9033ccff #a0000000 std
 MENU COLOR sel          7;37;40 #e0ffffff #20ffffff all
