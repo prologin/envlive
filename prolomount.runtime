@@ -1,44 +1,29 @@
-<<<<<<< HEAD
 prololive_mount_handler() {
-    mount -o remount,size=75% /run
-    
-=======
-prololive_mount() {
->>>>>>> 9908d7a1de62adb34a1ac820785f4860d7c77c9a
-    mkdir /run/proloboot
-    mkdir /run/prolosquash
-
-    local mount_rw=/run/mountpoints/root
+    local persistent_dir=/run/mountpoints/root
     local mount_full=/run/mountpoints/full
     local mount_big=/run/mountpoints/big
     local mount_light=/run/mountpoints/light
-    local image_full=/run/proloroot/full.squashfs
-    local image_big=/run/proloroot/big.squashfs
-    local image_light=/run/proloroot/light.squashfs
-<<<<<<< HEAD
-    local image_doc=/run/proloroot/documentation.squashfs
-=======
->>>>>>> 9908d7a1de62adb34a1ac820785f4860d7c77c9a
+    local image_full=/run/proloboot/full.squashfs
+    local image_big=/run/proloboot/big.squashfs
+    local image_light=/run/proloboot/light.squashfs
+    local image_doc=/run/proloboot/documentation.squashfs
+    local root=$1
+    
+    mkdir /run/proloboot
+    mkdir /run/prolosquash
+    
     mkdir /run/mountpoints
-    mkdir ${mount_rw}
+    mkdir ${persistent_dir}
     mkdir ${mount_full}
     mkdir ${mount_big}
     mkdir ${mount_light}
-
-<<<<<<< HEAD
-    local root=$1
-=======
-
-    root=/run/rootfs
->>>>>>> 9908d7a1de62adb34a1ac820785f4860d7c77c9a
-    mkdir -p ${root}
-
-    msg -n ":: Mounting proloboot..."
-    mount LABEL=proloboot /run/proloroot
-    msg " Done."
     
+    msg -n ":: Mounting proloboot..."
+    mount LABEL=proloboot /run/proloboot
+    msg " Done."
+
     if [[ ${cachetoram} = "full" ]] ; then
-	msg -n ":: Copying full squashfs to RAM..." 
+	msg -n ":: Copying full squashfs to RAM..."
 	cp ${image_full} /run/prolosquash/ || launch_interactive_shell
 	image_full=/run/prolosquash/full.squashfs
 	msg " Done."
@@ -62,28 +47,24 @@ prololive_mount() {
     mount ${image_light} /run/mountpoints/light || launch_interactive_shell
     mount ${image_big} /run/mountpoints/big || launch_interactive_shell
     mount ${image_full} /run/mountpoints/full || launch_interactive_shell
-    mount LABEL=proloroot ${mount_rw}
+    mount LABEL=proloboot ${root_rw}
+    msg " Done."
+
+    msg -n ":: Mounting the persistent (rw) filesystem..."
+    mount LABEL=persistent ${persistent_dir}
     msg " Done."
     
-    mkdir -p ${mount_rw}/workdir
-
+    mkdir -p ${persistent_dir}/workdir
 
     msg -n ":: Mounting overlayfs..."
-    mount -t overlay overlay -o lowerdir=/run/mountpoints/full:/run/mountpoints/big:/run/mountpoints/light/,upperdir=${mount_rw}/rootfs,workdir=${mount_rw}/workdir ${root}
+    mount -t overlay overlay -o lowerdir=/run/mountpoints/full:/run/mountpoints/big:/run/mountpoints/light/,upperdir=${persistent_dir}/rootfs,workdir=${persistent_dir}/workdir ${root}
     msg " Done."
-<<<<<<< HEAD
 
     msg -n ":: Mounting the documentation filesystem..."
     mount ${image_doc} ${root}/home/prologin/documentation
     msg " Done."
-
-    switch_root $root
 }
 
 mount_handler=prololive_mount_handler
 
-=======
-}
-
->>>>>>> 9908d7a1de62adb34a1ac820785f4860d7c77c9a
 # vim:ft=sh:ts=4:sw=4:et:

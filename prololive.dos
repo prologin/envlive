@@ -1,0 +1,7 @@
+label: dos
+label-id: 0x09e0091c
+device: prololive.img
+unit: sectors
+
+prololive.img1 : start=        2048, size=     6905856, type=83, bootable
+prololive.img2 : start=     6907904, size=      923648, type=83

@@ -13,20 +13,33 @@ umount -R ${PROLOLIVE_DIR}.full
 
 
 # Deleting previously generated squash files
-rm -f *.squashfs
+rm -f ${PROLOLIVE_DIR}*.squashfs
 
 
-# Allocating space for filesystems
+# Allocating space for filesystems and the root
 rm -f ${PROLOLIVE_IMG}.light && fallocate -l 1G            ${PROLOLIVE_IMG}.light
 rm -f ${PROLOLIVE_IMG}.big   && fallocate -l 1500M         ${PROLOLIVE_IMG}.big
 rm -f ${PROLOLIVE_IMG}.full  && fallocate -l 5G            ${PROLOLIVE_IMG}.full
 rm -f ${PROLOLIVE_IMG}       && fallocate -l ${IMAGE_SIZE} ${PROLOLIVE_IMG}
 
 
+# Partitionning the image disk file
+sfdisk ${PROLOLIVE_IMG} < prololive.dos
+
+
+# Creating loop devices for the disk image file
+LOOP=$(kpartx -l ${PROLOLIVE_IMG} | grep -o "loop[0-9]" | head -n1)
+rm -f /dev/mapper/${LOOP}
+kpartx -as ${PROLOLIVE_IMG}
+
 # Formatting all filesystems
-mkfs.ext4 -F ${PROLOLIVE_IMG}.light
-mkfs.ext4 -F ${PROLOLIVE_IMG}.big
-mkfs.ext4 -F ${PROLOLIVE_IMG}.full
+
+for f in ${PROLOLIVE_IMG}.full ${PROLOLIVE_IMG}.big ${PROLOLIVE_IMG}.light ; do
+    mkfs.ext4 -F $f
+done
+
+mkfs.ext4 /dev/mapper/${LOOP}p1 -L proloboot
+mkfs.ext4 /dev/mapper/${LOOP}p2 -L persistent
 
 
 # Mounting filesystems
@@ -35,33 +48,36 @@ mkdir -p ${PROLOLIVE_DIR}.light # Where the core OS filesystem will be mounted a
 mkdir -p ${PROLOLIVE_DIR}.big   # Where many light toold will be provided as well as DE/WP
 mkdir -p ${PROLOLIVE_DIR}.full  # Where the biggest packages will go. Hi ghc!
 
-mkdir -p ${PROLOLIVE_DIR}/{work,system}     # Dirs for mounting with overlayfs
-mkdir -p overlay-intermediate/{work,system} # Dirs for mounting with overlayfs
-
 mount ${PROLOLIVE_IMG}.light ${PROLOLIVE_DIR}.light
 mount ${PROLOLIVE_IMG}.big   ${PROLOLIVE_DIR}.big
 mount ${PROLOLIVE_IMG}.full  ${PROLOLIVE_DIR}.full
 
-mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/,upperdir=${PROLOLIVE_DIR}.big/system/,workdir=${PROLOLIVE_DIR}.big/work/ overlay-intermediate/
+for mountpoint in ${PROLOLIVE_DIR}.light ${PROLOLIVE_DIR}.big ${PROLOLIVE_DIR}.full ; do
+    mkdir -p ${mountpoint}/{work,system} # Creating them for harmonization when making squashfs
+done
+
+mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system/,workdir=${PROLOLIVE_DIR}.big/work/ overlay-intermediate/
 mount -t overlay overlay -o lowerdir=overlay-intermediate,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${PROLOLIVE_DIR}
 
 mkdir ${PROLOLIVE_DIR}/boot
-mount ${PROLOLIVE_IMG}.boot ${PROLOLIVE_DIR}/boot
+mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}/boot
 
 
-# Installing packages
-pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}.light base base-devel
+# Installing core system packages on the lower layer
+pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}.light/system base base-devel
 
-pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}.big btrfs-progs clang firefox \
+# Installing some not-too-big packages on the middle layer (overlay-intermediate)
+pacstrap -C pacman.conf -c overlay-intermediate/ btrfs-progs clang firefox \
 	 firefox-i18n-fr grml-zsh-config htop networkmanager openssh \
 	 rxvt-unicode screen tmux zsh ntfs-3g lxqt xorg xorg-apps gdb valgrind \
 	 js luajit nodejs ocaml php
 
-pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}.full clang-analyzer \
-	 clang-tools-extra git mercurial ntp reptyr rlwrap rsync samba \
-	 syslinux wget sublime-text codeblocks eclipse ed eric eric-i18n-fr \
-	 geany kate kdevelop leafpad mono-debugger monodevelop \
-	 monodevelop-debugger-gdb netbeans openjdk8-doc scite boost ghc
+# Installing the biggest packages on the top layer (${PROLOLIVE_DIR})
+pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ clang-analyzer clang-tools-extra \
+	 git mercurial ntp reptyr rlwrap rsync samba syslinux wget \
+	 sublime-text codeblocks eclipse ed eric eric-i18n-fr geany kate \
+	 kdevelop leafpad mono-debugger monodevelop monodevelop-debugger-gdb \
+	 netbeans openjdk8-doc scite boost ghc
 
 
 # Copying the hook needed to mount squash filesystems on boot
@@ -131,7 +147,7 @@ umount ${PROLOLIVE_DIR}/boot
 
 # Creating squash filesystems
 for mountpoint in ${PROLOLIVE_DIR}.light ${PROLOLIVE_DIR}.big ${PROLOLIVE_DIR}.full ; do
-    mksquashfs {mountpoint}/ ${mountpoint}.squashfs -comp lz4 -b 1048576 -e ${mountpoint}/proc ${mountpoint}/tmp ${mountpoint}/home ${mountpoint}/boot ${mountpoint}/dev
+    mksquashfs ${mountpoint}/system ${mountpoint}.squashfs -comp lz4 -b 1048576 -e ${mountpoint}/system/proc ${mountpoint}/system/tmp ${mountpoint}/system/home ${mountpoint}/system/boot ${mountpoint}/system/dev
 done
 
 
