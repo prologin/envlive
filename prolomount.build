@@ -1,0 +1,13 @@
+build() {
+    add_module overlay
+    add_module ext4
+    add_module squashfs
+    add_binary mount
+    add_runscript
+}
+
+help() {
+    cat <<HELPEOFT
+his hook is provided to mount the overlayfs in the root filesystem.
+HELPEOF
+}
