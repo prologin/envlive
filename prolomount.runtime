@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 prololive_mount_handler() {
     mount -o remount,size=75% /run
     
+=======
+prololive_mount() {
+>>>>>>> 9908d7a1de62adb34a1ac820785f4860d7c77c9a
     mkdir /run/proloboot
     mkdir /run/prolosquash
 
@@ -11,14 +15,22 @@ prololive_mount_handler() {
     local image_full=/run/proloroot/full.squashfs
     local image_big=/run/proloroot/big.squashfs
     local image_light=/run/proloroot/light.squashfs
+<<<<<<< HEAD
     local image_doc=/run/proloroot/documentation.squashfs
+=======
+>>>>>>> 9908d7a1de62adb34a1ac820785f4860d7c77c9a
     mkdir /run/mountpoints
     mkdir ${mount_rw}
     mkdir ${mount_full}
     mkdir ${mount_big}
     mkdir ${mount_light}
 
+<<<<<<< HEAD
     local root=$1
+=======
+
+    root=/run/rootfs
+>>>>>>> 9908d7a1de62adb34a1ac820785f4860d7c77c9a
     mkdir -p ${root}
 
     msg -n ":: Mounting proloboot..."
@@ -59,6 +71,7 @@ prololive_mount_handler() {
     msg -n ":: Mounting overlayfs..."
     mount -t overlay overlay -o lowerdir=/run/mountpoints/full:/run/mountpoints/big:/run/mountpoints/light/,upperdir=${mount_rw}/rootfs,workdir=${mount_rw}/workdir ${root}
     msg " Done."
+<<<<<<< HEAD
 
     msg -n ":: Mounting the documentation filesystem..."
     mount ${image_doc} ${root}/home/prologin/documentation
@@ -69,4 +82,8 @@ prololive_mount_handler() {
 
 mount_handler=prololive_mount_handler
 
+=======
+}
+
+>>>>>>> 9908d7a1de62adb34a1ac820785f4860d7c77c9a
 # vim:ft=sh:ts=4:sw=4:et:
