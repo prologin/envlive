@@ -11,6 +11,7 @@ umount -R overlay-intermediate   2>/dev/null
 umount -R ${PROLOLIVE_DIR}.light 2>/dev/null
 umount -R ${PROLOLIVE_DIR}.big   2>/dev/null
 umount -R ${PROLOLIVE_DIR}.full  2>/dev/null
+umount -R *                      2>/dev/null
 echo " Done."
 
 
@@ -50,44 +51,42 @@ mkdir -p ${PROLOLIVE_DIR}/      # Where all FS will be union-mounted
 mkdir -p ${PROLOLIVE_DIR}.light # Where the core OS filesystem will be mounted alone
 mkdir -p ${PROLOLIVE_DIR}.big   # Where many light tools will be provided as well as DE/WP
 mkdir -p ${PROLOLIVE_DIR}.full  # Where the biggest packages will go. Hi ghc!
-mkdir -p overlay-intermediate
+mkdir -p overlay-intermediate   # Where .big will be mounted over .light
 
 mount ${PROLOLIVE_IMG}.light ${PROLOLIVE_DIR}.light
 mount ${PROLOLIVE_IMG}.big   ${PROLOLIVE_DIR}.big
 mount ${PROLOLIVE_IMG}.full  ${PROLOLIVE_DIR}.full
 
 for mountpoint in ${PROLOLIVE_DIR}.light ${PROLOLIVE_DIR}.big ${PROLOLIVE_DIR}.full ; do
-    mkdir ${mountpoint}/{work,system} # Creating them for harmonization when making squashfs
+    mkdir ${mountpoint}/{work,system} # Creating all of them for harmonization when making squashfs
 done
-
-mount ${PROLOLIVE_IMG}.light ${PROLOLIVE_DIR}.light
-mount ${PROLOLIVE_IMG}.big ${PROLOLIVE_DIR}.big
-mount ${PROLOLIVE_IMG}.full ${PROLOLIVE_DIR}.full
-mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system/,workdir=${PROLOLIVE_DIR}.big/work/ overlay-intermediate/
-mount -t overlay overlay -o lowerdir=overlay-intermediate,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${PROLOLIVE_DIR}
-
-mkdir ${PROLOLIVE_DIR}/boot
-mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}/boot
 echo " Done."
 
 
 echo "Installing packages available in repositories..."
 echo "Installing core system packages on the lower layer"
-pacstrap -d -C pacman.conf -c ${PROLOLIVE_DIR}.light/system base base-devel
-mount -o remount,ro ${PROLOLIVE_IMG}.light
+mkdir -p ${PROLOLIVE_DIR}.light/system/boot
+mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}.light/system/boot || echo "WTFFFFFFFFFFFFFFF"
+./pacstrap -d -C pacman.conf -c ${PROLOLIVE_DIR}.light/system base base-devel
+umount /dev/mapper/${LOOP}p1
 
 
 echo "Installing some not-too-big packages on the middle layer (overlay-intermediate)"
-pacstrap -C pacman.conf -c overlay-intermediate/ btrfs-progs clang firefox \
+mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system/,workdir=${PROLOLIVE_DIR}.big/work/ overlay-intermediate/
+mount /dev/mapper/${LOOP}p1 overlay-intermediate/boot
+./pacstrap -C pacman.conf -c overlay-intermediate/ btrfs-progs clang firefox \
 	 firefox-i18n-fr grml-zsh-config htop networkmanager openssh \
 	 rxvt-unicode screen tmux zsh ntfs-3g lxqt xorg xorg-apps gdb valgrind \
 	 js luajit nodejs ocaml php
-mount -o remount,ro ${PROLOLIVE_IMG}.big
+umount /dev/mapper/${LOOP}p1
+umount overlay-intermediate
 
 echo "Installing the biggest packages on the top layer (${PROLOLIVE_DIR})"
-pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ clang-analyzer clang-tools-extra \
+mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.big/system:${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${PROLOLIVE_DIR}
+mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}/boot
+./pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ clang-analyzer clang-tools-extra \
 	 git mercurial ntp reptyr rlwrap rsync samba syslinux wget \
-	 sublime-text codeblocks eclipse ed eric eric-i18n-fr geany kate \
+	 codeblocks eclipse ed eric eric-i18n-fr geany kate \
 	 kdevelop leafpad mono-debugger monodevelop monodevelop-debugger-gdb \
 	 netbeans openjdk8-doc scite boost ghc
 
@@ -119,7 +118,7 @@ cp pacman.conf ${PROLOLIVE_DIR}/etc/pacman.conf
 echo "Installing some AUR packages..."
 systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S yaourt --noconfirm
 echo "prologin ALL=(ALL) NOPASSWD: ALL" >> ${PROLOLIVE_DIR}/etc/sudoers
-systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S notepadqq-git pycharm-community --noconfirm
+systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S notepadqq-git pycharm-community sublime-text --noconfirm
 sed "s:prologin:#prologin:" -i ${PROLOLIVE_DIR}/etc/sudoers
 echo "Done."
 

@@ -65,6 +65,12 @@ prololive_mount_handler() {
     msg " Done."
 }
 
+help() {
+    cat <<HELPEOF
+This hook is provided for mounting squashfs and persistent storage on overlayfs.
+HELPEOF
+}
+
 mount_handler=prololive_mount_handler
 
 # vim:ft=sh:ts=4:sw=4:et:
