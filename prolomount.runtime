@@ -8,16 +8,16 @@ prololive_mount_handler() {
     local image_light=/run/proloboot/light.squashfs
     local image_doc=/run/proloboot/documentation.squashfs
     local root=$1
-    
+
     mkdir /run/proloboot
     mkdir /run/prolosquash
-    
+
     mkdir /run/mountpoints
     mkdir ${persistent_dir}
     mkdir ${mount_full}
     mkdir ${mount_big}
     mkdir ${mount_light}
-    
+
     msg -n ":: Mounting proloboot..."
     mount LABEL=proloboot /run/proloboot
     msg " Done."
@@ -53,7 +53,7 @@ prololive_mount_handler() {
     msg -n ":: Mounting the persistent (rw) filesystem..."
     mount LABEL=persistent ${persistent_dir}
     msg " Done."
-    
+
     mkdir -p ${persistent_dir}/workdir
 
     msg -n ":: Mounting overlayfs..."

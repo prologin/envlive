@@ -9,5 +9,8 @@ build() {
 help() {
     cat <<HELPEOFT
 his hook is provided to mount the overlayfs in the root filesystem.
-HELPEOF
+HELPEOFT
 }
+
+
+# vim: set ft=sh ts=4 sw=4 et:

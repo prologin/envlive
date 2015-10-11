@@ -20,7 +20,7 @@ echo -n "Allocating filesystems files..."
 rm -f ${PROLOLIVE_IMG}.light && fallocate -l 1G            ${PROLOLIVE_IMG}.light
 rm -f ${PROLOLIVE_IMG}.big   && fallocate -l 1500M         ${PROLOLIVE_IMG}.big
 rm -f ${PROLOLIVE_IMG}.full  && fallocate -l 5G            ${PROLOLIVE_IMG}.full
-rm -f ${PROLOLIVE_IMG}       && fallocate -l ${IMAGE_SIZE} ${PROLOLIVE_IMG}
+rm -f ${PROLOLIVE_IMG}       && dd if=/dev/zero of=${PROLOLIVE_IMG} bs=1M count=3824
 echo " Done."
 
 # Partitionning the image disk file
@@ -31,7 +31,6 @@ echo " Done."
 # Creating loop devices for the disk image file
 echo -n "Generating device mappings for the disk image..."
 LOOP=$(kpartx -l ${PROLOLIVE_IMG} | grep -o "loop[0-9]" | head -n1)
-rm -f /dev/mapper/${LOOP}
 kpartx -as ${PROLOLIVE_IMG}
 echo " Done."
 
@@ -52,6 +51,7 @@ mkdir -p ${PROLOLIVE_DIR}.light # Where the core OS filesystem will be mounted a
 mkdir -p ${PROLOLIVE_DIR}.big   # Where many light tools will be provided as well as DE/WP
 mkdir -p ${PROLOLIVE_DIR}.full  # Where the biggest packages will go. Hi ghc!
 mkdir -p overlay-intermediate   # Where .big will be mounted over .light
+mkdir -p first-bind             # Where the first system/ directory is mounted
 
 mount ${PROLOLIVE_IMG}.light ${PROLOLIVE_DIR}.light
 mount ${PROLOLIVE_IMG}.big   ${PROLOLIVE_DIR}.big
@@ -65,43 +65,47 @@ echo " Done."
 
 echo "Installing packages available in repositories..."
 echo "Installing core system packages on the lower layer"
-mkdir -p ${PROLOLIVE_DIR}.light/system/boot
-mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}.light/system/boot || echo "WTFFFFFFFFFFFFFFF"
-./pacstrap -d -C pacman.conf -c ${PROLOLIVE_DIR}.light/system base base-devel
-umount /dev/mapper/${LOOP}p1
+mount -o bind ${PROLOLIVE_DIR}.light/system first-bind/
+mkdir -p first-bind/boot
+mount LABEL=proloboot first-bind/boot
+pacstrap -C pacman.conf -c first-bind base base-devel
 
-
-echo "Installing some not-too-big packages on the middle layer (overlay-intermediate)"
-mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system/,workdir=${PROLOLIVE_DIR}.big/work/ overlay-intermediate/
-mount /dev/mapper/${LOOP}p1 overlay-intermediate/boot
-./pacstrap -C pacman.conf -c overlay-intermediate/ btrfs-progs clang firefox \
-	 firefox-i18n-fr grml-zsh-config htop networkmanager openssh \
-	 rxvt-unicode screen tmux zsh ntfs-3g lxqt xorg xorg-apps gdb valgrind \
-	 js luajit nodejs ocaml php
-umount /dev/mapper/${LOOP}p1
-umount overlay-intermediate
-
-echo "Installing the biggest packages on the top layer (${PROLOLIVE_DIR})"
-mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.big/system:${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${PROLOLIVE_DIR}
-mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}/boot
-./pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ clang-analyzer clang-tools-extra \
-	 git mercurial ntp reptyr rlwrap rsync samba syslinux wget \
-	 codeblocks eclipse ed eric eric-i18n-fr geany kate \
-	 kdevelop leafpad mono-debugger monodevelop monodevelop-debugger-gdb \
-	 netbeans openjdk8-doc scite boost ghc
 
 # Copying the hook needed to mount squash filesystems on boot
 echo -n "Copying hook files..."
-cp prolomount.build ${PROLOLIVE_DIR}/usr/lib/initcpio/install/prolomount
-cp prolomount.runtime ${PROLOLIVE_DIR}/usr/lib/initcpio/hooks/prolomount
+cp prolomount.build first-bind/usr/lib/initcpio/install/prolomount
+cp prolomount.runtime first-bind/usr/lib/initcpio/hooks/prolomount
 echo " Done."
 
 
 # Copying config and generating initcpio
 echo "Generating the initcpio ramdisk..."
-cp mkinitcpio.conf ${PROLOLIVE_DIR}/etc/mkinitcpio.conf
-systemd-nspawn -q -D ${PROLOLIVE_DIR} mkinitcpio -p linux
+cp mkinitcpio.conf first-bind/etc/mkinitcpio.conf
+systemd-nspawn -q -D first-bind mkinitcpio -p linux
 echo "Done."
+
+
+echo "Installing some not-too-big packages on the middle layer (overlay-intermediate)"
+umount LABEL=proloboot
+umount first-bind
+mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system/,workdir=${PROLOLIVE_DIR}.big/work/ overlay-intermediate/
+mount LABEL=proloboot overlay-intermediate/boot
+pacstrap -C pacman.conf -c overlay-intermediate/ btrfs-progs clang firefox \
+	 firefox-i18n-fr grml-zsh-config htop networkmanager openssh \
+	 rxvt-unicode screen tmux zsh ntfs-3g lxqt xorg xorg-apps gdb valgrind \
+	 js luajit nodejs ocaml php
+umount LABEL=proloboot
+umount overlay-intermediate
+
+echo "Installing the biggest packages on the top layer (${PROLOLIVE_DIR})"
+mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.big/system:${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${PROLOLIVE_DIR}
+mount LABEL=proloboot ${PROLOLIVE_DIR}/boot
+pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ clang-analyzer clang-tools-extra \
+	 git mercurial ntp reptyr rlwrap rsync samba syslinux wget \
+	 codeblocks eclipse ed eric eric-i18n-fr geany kate \
+	 kdevelop leafpad mono-debugger monodevelop monodevelop-debugger-gdb \
+	 netbeans openjdk8-doc scite boost ghc
+
 
 # Configuring passwords for prologin and root users
 echo -n "Configuring users and passwords..."
@@ -136,8 +140,8 @@ EOF
 echo "Doing some configuration..."
 echo "prololive" > ${PROLOLIVE_DIR}/etc/hostname
 systemd-nspawn -q -D ${PROLOLIVE_DIR} ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
-echo 'fr_FR.UTF-8' >  ${PROLOLIVE_DIR}/etc/locale.gen
-echo 'en_US.UTF-8' >> ${PROLOLIVE_DIR}/etc/locale.gen
+echo 'fr_FR.UTF-8 UTF-8' >  ${PROLOLIVE_DIR}/etc/locale.gen
+echo 'en_US.UTF-8 UTF-8' >> ${PROLOLIVE_DIR}/etc/locale.gen
 echo "LANG=fr_FR.UTF-8" > ${PROLOLIVE_DIR}/etc/locale.conf
 systemd-nspawn -q -D ${PROLOLIVE_DIR} locale-gen
 
@@ -155,10 +159,7 @@ echo "Done."
 
 # Configuring boot system
 echo "Installing syslinux..."
-mkdir -p ${PROLOLIVE_DIR}/boot/syslinux
-cp -r ${PROLOLIVE_DIR}/usr/lib/syslinux/bios/*.c32 ${PROLOLIVE_DIR}/boot/syslinux/
-extlinux --install ${PROLOLIVE_DIR}/boot/syslinux || echo "SOMETHING WENT WRONG."
-dd if=${PROLOLIVE_DIR}/usr/lib/syslinux/bios/mbr.bin of=${PROLOLIVE_IMG} bs=440 count=1
+syslinux-install_update -iam -c ${PROLOLIVE_DIR}
 
 cp ${LOGOFILE} ${PROLOLIVE_DIR}/boot/syslinux/${LOGOFILE} || echo -n " missing ${LOGOFILE} file..."
 cp syslinux.cfg ${PROLOLIVE_DIR}/boot/syslinux/
@@ -172,11 +173,11 @@ done
 
 # Unmounting all mounted filesystems
 echo -n "Unmounting filesystems..."
-umount -R ${PROLOLIVE_DIR}       # All FS merged minus /boot
-umount ${PROLOLIVE_DIR}.full  #
-umount overlay-intermediate   # Light and big FS merged
-umount ${PROLOLIVE_DIR}.big   #
-umount ${PROLOLIVE_DIR}.light #
+umount LABEL=proloboot
+umount -R ${PROLOLIVE_DIR}    # All FS merged minus /boot
+umount ${PROLOLIVE_DIR}.full
+umount ${PROLOLIVE_DIR}.big
+umount ${PROLOLIVE_DIR}.light
 echo " Done."
 
 echo "The end."
