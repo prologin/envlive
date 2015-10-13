@@ -3,9 +3,9 @@ prololive_mount_handler() {
     local mount_full=/run/mountpoints/full
     local mount_big=/run/mountpoints/big
     local mount_light=/run/mountpoints/light
-    local image_full=/run/proloboot/full.squashfs
-    local image_big=/run/proloboot/big.squashfs
-    local image_light=/run/proloboot/light.squashfs
+    local image_full=/run/proloboot/prololive.full.squashfs
+    local image_big=/run/proloboot/prololive.big.squashfs
+    local image_light=/run/proloboot/prololive.light.squashfs
     local image_doc=/run/proloboot/documentation.squashfs
     local root=$1
 
@@ -19,7 +19,7 @@ prololive_mount_handler() {
     mkdir ${mount_light}
 
     msg -n ":: Mounting proloboot..."
-    mount LABEL=proloboot /run/proloboot
+    mount LABEL=proloboot /run/proloboot || launch_interactive_shell
     msg " Done."
 
     if [[ ${cachetoram} = "full" ]] ; then
@@ -45,24 +45,29 @@ prololive_mount_handler() {
 
     msg -n ":: Mounting squashfs filesystems..."
     mount ${image_light} /run/mountpoints/light || launch_interactive_shell
-    mount ${image_big} /run/mountpoints/big || launch_interactive_shell
-    mount ${image_full} /run/mountpoints/full || launch_interactive_shell
-    mount LABEL=proloboot ${root_rw}
+    mount ${image_big} /run/mountpoints/big     || launch_interactive_shell
+    mount ${image_full} /run/mountpoints/full   || launch_interactive_shell
+    mkdir -p ${root}/boot
+    mount LABEL=proloboot ${root}/boot          || launch_interactive_shell
     msg " Done."
 
     msg -n ":: Mounting the persistent (rw) filesystem..."
-    mount LABEL=persistent ${persistent_dir}
+    mount LABEL=persistent ${persistent_dir}    || launch_interactive_shell
     msg " Done."
 
-    mkdir -p ${persistent_dir}/workdir
+    mkdir -p ${persistent_dir}/workdir ${persistent_dir}/rootfs
 
     msg -n ":: Mounting overlayfs..."
-    mount -t overlay overlay -o lowerdir=/run/mountpoints/full:/run/mountpoints/big:/run/mountpoints/light/,upperdir=${persistent_dir}/rootfs,workdir=${persistent_dir}/workdir ${root}
+    mount -t overlay overlay -o lowerdir=/run/mountpoints/full:/run/mountpoints/big:/run/mountpoints/light/,upperdir=${persistent_dir}/rootfs,workdir=${persistent_dir}/workdir ${root} || launch_interactive_shell
     msg " Done."
 
     msg -n ":: Mounting the documentation filesystem..."
-    mount ${image_doc} ${root}/home/prologin/documentation
+    mkdir -p ${root}/home/prologin/documentation
+    mount ${image_doc} ${root}/home/prologin/documentation || launch_interactive_shell
     msg " Done."
+    msg "Launching a shell, for the FFUUUUUUUUU-n"
+    launch_interactive_shell
+    return 0
 }
 
 help() {
@@ -71,6 +76,9 @@ This hook is provided for mounting squashfs and persistent storage on overlayfs.
 HELPEOF
 }
 
-mount_handler=prololive_mount_handler
+run_hook ()
+{
+    mount_handler="prololive_mount_handler"
+}
 
 # vim:ft=sh:ts=4:sw=4:et:

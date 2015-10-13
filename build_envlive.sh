@@ -12,15 +12,16 @@ umount -R ${PROLOLIVE_DIR}.light 2>/dev/null
 umount -R ${PROLOLIVE_DIR}.big   2>/dev/null
 umount -R ${PROLOLIVE_DIR}.full  2>/dev/null
 umount -R *                      2>/dev/null
+kpartx -d ${PROLOLIVE_IMG}       2>/dev/null
 echo " Done."
 
 
 # Allocating space for filesystems and the root
-echo -n "Allocating filesystems files..."
-rm -f ${PROLOLIVE_IMG}.light && fallocate -l 1G            ${PROLOLIVE_IMG}.light
-rm -f ${PROLOLIVE_IMG}.big   && fallocate -l 1500M         ${PROLOLIVE_IMG}.big
-rm -f ${PROLOLIVE_IMG}.full  && fallocate -l 5G            ${PROLOLIVE_IMG}.full
-rm -f ${PROLOLIVE_IMG}       && dd if=/dev/zero of=${PROLOLIVE_IMG} bs=1M count=3824
+echo -n "Allocating filesystems files (will not overwrite existing files"
+(test -f ${PROLOLIVE_IMG}.light && dd if=/dev/zero of=${PROLOLIVE_IMG}.light bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.light bs=1M count=1000
+(test -f ${PROLOLIVE_IMG}.big   && dd if=/dev/zero of=${PROLOLIVE_IMG}.big   bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.big   bs=1M count=1500
+(test -f ${PROLOLIVE_IMG}.full  && dd if=/dev/zero of=${PROLOLIVE_IMG}.full  bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.full  bs=1M count=5000
+(test -f ${PROLOLIVE_IMG}       && dd if=/dev/zero of=${PROLOLIVE_IMG}       bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}       bs=1M count=3824
 echo " Done."
 
 # Partitionning the image disk file
@@ -31,17 +32,19 @@ echo " Done."
 # Creating loop devices for the disk image file
 echo -n "Generating device mappings for the disk image..."
 LOOP=$(kpartx -l ${PROLOLIVE_IMG} | grep -o "loop[0-9]" | head -n1)
+rm -f /dev/mapper/${LOOP}
+ln -s /dev/${LOOP} /dev/mapper/${LOOP}
 kpartx -as ${PROLOLIVE_IMG}
 echo " Done."
 
 # Formatting all filesystems
 echo -n "Formatting all filesystems..."
 for f in ${PROLOLIVE_IMG}.full ${PROLOLIVE_IMG}.big ${PROLOLIVE_IMG}.light ; do
-    mkfs.ext4 -q -F $f
+    mkfs.ext4 -q $f
 done
 
-mkfs.ext4 -q -F /dev/mapper/${LOOP}p1 -L proloboot
-mkfs.ext4 -q -F /dev/mapper/${LOOP}p2 -L persistent
+mkfs.ext4 -F -q /dev/mapper/${LOOP}p1 -L proloboot
+mkfs.ext4 -F -q /dev/mapper/${LOOP}p2 -L persistent
 echo " Done."
 
 # Mounting filesystems
@@ -68,7 +71,7 @@ echo "Installing core system packages on the lower layer"
 mount -o bind ${PROLOLIVE_DIR}.light/system first-bind/
 mkdir -p first-bind/boot
 mount LABEL=proloboot first-bind/boot
-pacstrap -C pacman.conf -c first-bind base base-devel
+pacstrap -C pacman.conf -c first-bind base base-devel syslinux
 
 
 # Copying the hook needed to mount squash filesystems on boot
@@ -88,21 +91,23 @@ echo "Done."
 echo "Installing some not-too-big packages on the middle layer (overlay-intermediate)"
 umount LABEL=proloboot
 umount first-bind
-mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system/,workdir=${PROLOLIVE_DIR}.big/work/ overlay-intermediate/
+mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system,workdir=${PROLOLIVE_DIR}.big/work overlay-intermediate/
 mount LABEL=proloboot overlay-intermediate/boot
-pacstrap -C pacman.conf -c overlay-intermediate/ btrfs-progs clang firefox \
-	 firefox-i18n-fr grml-zsh-config htop networkmanager openssh \
-	 rxvt-unicode screen tmux zsh ntfs-3g lxqt xorg xorg-apps gdb valgrind \
-	 js luajit nodejs ocaml php
+pacstrap -C pacman.conf -c overlay-intermediate/ zsh grml-zsh-config tmux \
+	 lxqt xorg xorg-apps rxvt-unicode sddm firefox firefox-i18n-fr htop \
+	 networkmanager openssh clang screen ntfs-3g gdb valgrind js luajit \
+	 nodejs ocaml php
+
 umount LABEL=proloboot
 umount overlay-intermediate
 
 echo "Installing the biggest packages on the top layer (${PROLOLIVE_DIR})"
 mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.big/system:${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${PROLOLIVE_DIR}
-mount LABEL=proloboot ${PROLOLIVE_DIR}/boot
-pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ clang-analyzer clang-tools-extra \
-	 git mercurial ntp reptyr rlwrap rsync samba syslinux wget \
-	 codeblocks eclipse ed eric eric-i18n-fr geany kate \
+mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}/boot
+pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ ed \
+	 clang-analyzer clang-tools-extra \
+	 git mercurial ntp reptyr rlwrap rsync samba wget \
+	 codeblocks eclipse eric eric-i18n-fr geany kate \
 	 kdevelop leafpad mono-debugger monodevelop monodevelop-debugger-gdb \
 	 netbeans openjdk8-doc scite boost ghc
 
@@ -118,13 +123,13 @@ echo " Done."
 cp pacman.conf ${PROLOLIVE_DIR}/etc/pacman.conf
 
 
-# Installing yaourt and some AUR packages
-echo "Installing some AUR packages..."
-systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S yaourt --noconfirm
-echo "prologin ALL=(ALL) NOPASSWD: ALL" >> ${PROLOLIVE_DIR}/etc/sudoers
-systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S notepadqq-git pycharm-community sublime-text --noconfirm
-sed "s:prologin:#prologin:" -i ${PROLOLIVE_DIR}/etc/sudoers
-echo "Done."
+## Installing yaourt and some AUR packages
+#echo "Installing some AUR packages..."
+#systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S yaourt --noconfirm
+#echo "prologin ALL=(ALL) NOPASSWD: ALL" >> ${PROLOLIVE_DIR}/etc/sudoers
+#systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S notepadqq-git pycharm-community sublime-text --noconfirm
+#sed "s:prologin:#prologin:" -i ${PROLOLIVE_DIR}/etc/sudoers
+#echo "Done."
 
 # Configuring fstab
 cat > ${PROLOLIVE_DIR}/etc/fstab <<EOF
@@ -142,11 +147,11 @@ echo "prololive" > ${PROLOLIVE_DIR}/etc/hostname
 systemd-nspawn -q -D ${PROLOLIVE_DIR} ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
 echo 'fr_FR.UTF-8 UTF-8' >  ${PROLOLIVE_DIR}/etc/locale.gen
 echo 'en_US.UTF-8 UTF-8' >> ${PROLOLIVE_DIR}/etc/locale.gen
-echo "LANG=fr_FR.UTF-8" > ${PROLOLIVE_DIR}/etc/locale.conf
+echo "LANG=fr_FR.UTF-8"  >  ${PROLOLIVE_DIR}/etc/locale.conf
+echo "KEYMAP=fr-pc"             >  ${PROLOLIVE_DIR}/etc/vconsole.conf
 systemd-nspawn -q -D ${PROLOLIVE_DIR} locale-gen
-
-systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable lxdm
-systemd-nspawn -q -D ${PROLOLIVE_DIR} sed -i "s:.*\?#.*\?autologin=.\+\?:autologin=prologin:" /etc/lxdm/lxdm.conf
+cp sddm.conf ${PROLOLIVE_DIR}/etc/
+systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable sddm
 
 cat > ${PROLOLIVE_DIR}/etc/systemd/journald.conf <<EOF
 [Journal]
@@ -158,10 +163,14 @@ systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin mkdir /home/prologin/.cache /h
 echo "Done."
 
 # Configuring boot system
-echo "Installing syslinux..."
-syslinux-install_update -iam -c ${PROLOLIVE_DIR}
+echo -n "Installing syslinux..."
+dd if=${PROLOLIVE_DIR}/usr/lib/syslinux/bios/mbr.bin of=/dev/mapper/${LOOP} bs=440 count=1
+mkdir -p ${PROLOLIVE_DIR}/boot/syslinux
+cp -r ${PROLOLIVE_DIR}/usr/lib/syslinux/bios/*.c32 ${PROLOLIVE_DIR}/boot/syslinux/
+extlinux --device /dev/disk/by-label/proloboot --install ${PROLOLIVE_DIR}/boot/syslinux
 
-cp ${LOGOFILE} ${PROLOLIVE_DIR}/boot/syslinux/${LOGOFILE} || echo -n " missing ${LOGOFILE} file..."
+rm /dev/mapper/${LOOP}
+cp logo.png ${PROLOLIVE_DIR}/boot/syslinux/ || echo -n " missing logo.png file..."
 cp syslinux.cfg ${PROLOLIVE_DIR}/boot/syslinux/
 echo " Done."
 
@@ -171,10 +180,12 @@ for mountpoint in ${PROLOLIVE_DIR}.light ${PROLOLIVE_DIR}.big ${PROLOLIVE_DIR}.f
     mksquashfs ${mountpoint}/system ${PROLOLIVE_DIR}/boot/${mountpoint}.squashfs -comp lz4 -b 1048576 -e ${mountpoint}/system/proc ${mountpoint}/system/tmp ${mountpoint}/system/home ${mountpoint}/system/boot ${mountpoint}/system/dev
 done
 
+cp documentation.squashfs ${PROLOLIVE_DIR}/boot/
+
 # Unmounting all mounted filesystems
 echo -n "Unmounting filesystems..."
 umount LABEL=proloboot
-umount -R ${PROLOLIVE_DIR}    # All FS merged minus /boot
+umount ${PROLOLIVE_DIR}    # All FS merged minus /boot
 umount ${PROLOLIVE_DIR}.full
 umount ${PROLOLIVE_DIR}.big
 umount ${PROLOLIVE_DIR}.light
