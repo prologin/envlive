@@ -1,0 +1,9 @@
+Dépendances pour lancer le script :
+- OS préféré              : Arch Linux
+- Paquets requis          : syslinux squashfs-tools
+- Paquets de l'AUR requis : multipath-tools-git
+
+TODO:
+- Trouver et/ou crafter un wallpaper frais pour syslinux
+- Configurer lxqt et envoyer un /home tar'd pour créer un squashfs
+- Ajouter des lanceurs pour netbeans, eclipse, notepadqq, etc. pour un accès rapide
