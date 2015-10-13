@@ -9,6 +9,8 @@ prololive_mount_handler() {
     local image_doc=/run/proloboot/documentation.squashfs
     local root=$1
 
+    mount -o remount,size=90% /run
+
     mkdir /run/proloboot
     mkdir /run/prolosquash
 
@@ -18,62 +20,64 @@ prololive_mount_handler() {
     mkdir ${mount_big}
     mkdir ${mount_light}
 
-    msg -n ":: Mounting proloboot..."
+    msg -n ":: Mounting proloboot... "
     mount LABEL=proloboot /run/proloboot || launch_interactive_shell
-    msg " Done."
+    msg "Done."
 
     if [[ ${cachetoram} = "full" ]] ; then
-	msg -n ":: Copying full squashfs to RAM..."
+	msg -n ":: Copying full squashfs to RAM... "
 	cp ${image_full} /run/prolosquash/ || launch_interactive_shell
-	image_full=/run/prolosquash/full.squashfs
-	msg " Done."
+	image_full=/run/prolosquash/prololive.full.squashfs
+	msg "Done."
     fi
 
     if [[ ${cachetoram} = "big" || ${cachetoram} = "full" ]] ; then
-	msg -n ":: Copying big squashfs to RAM..."
+	msg -n ":: Copying big squashfs to RAM... "
 	cp ${image_big} /run/prolosquash/ || launch_interactive_shell
-	image_big=/run/prolosquash/big.squashfs
-	msg " Done."
+	image_big=/run/prolosquash/prololive.big.squashfs
+	msg "Done."
     fi
 
     if [[ ${cachetoram} = "light" || ${cachetoram} = "big" || ${cachetoram} = "full" ]] ; then
-	msg -n ":: Copying light squashfs to RAM..."
+	msg -n ":: Copying light squashfs to RAM... "
 	cp ${image_light} /run/prolosquash/ || launch_interactive_shell
-	image_light=/run/prolosquash/light.squashfs
-	msg " Done."
+	image_light=/run/prolosquash/prololive.light.squashfs
+	msg "Done."
     fi
 
-    msg -n ":: Mounting squashfs filesystems..."
+    msg -n ":: Mounting squashfs filesystems... "
     mount ${image_light} /run/mountpoints/light || launch_interactive_shell
     mount ${image_big} /run/mountpoints/big     || launch_interactive_shell
     mount ${image_full} /run/mountpoints/full   || launch_interactive_shell
     mkdir -p ${root}/boot
     mount LABEL=proloboot ${root}/boot          || launch_interactive_shell
-    msg " Done."
+    msg "Done."
 
-    msg -n ":: Mounting the persistent (rw) filesystem..."
+    msg -n ":: Mounting the persistent (rw) filesystem... "
     mount LABEL=persistent ${persistent_dir}    || launch_interactive_shell
-    msg " Done."
+    msg "Done."
 
     mkdir -p ${persistent_dir}/workdir ${persistent_dir}/rootfs
 
-    msg -n ":: Mounting overlayfs..."
+    msg -n ":: Mounting overlayfs... "
     mount -t overlay overlay -o lowerdir=/run/mountpoints/full:/run/mountpoints/big:/run/mountpoints/light/,upperdir=${persistent_dir}/rootfs,workdir=${persistent_dir}/workdir ${root} || launch_interactive_shell
-    msg " Done."
+    msg "Done."
 
-    msg -n ":: Mounting the documentation filesystem..."
+    msg -n ":: Mounting the documentation filesystem... "
     mkdir -p ${root}/home/prologin/documentation
     mount ${image_doc} ${root}/home/prologin/documentation || launch_interactive_shell
-    msg " Done."
-    msg "Launching a shell, for the FFUUUUUUUUU-n"
-    launch_interactive_shell
+    msg "Done."
     return 0
 }
 
 help() {
-    cat <<HELPEOF
+    cat <<EOF
 This hook is provided for mounting squashfs and persistent storage on overlayfs.
-HELPEOF
+It adds a kernel command line option: cachetoram, who can take three values:
+- light : copies the core OS squashfs into RAM. 512 MB of RAM required.
+- big   : light + copies some software (a squashfs) on RAM. 1 GB required.
+- full  : copies all squashFS on RAM. 4 GB of RAM required.
+EOF
 }
 
 run_hook ()

@@ -21,7 +21,7 @@ echo -n "Allocating filesystems files (will not overwrite existing files"
 (test -f ${PROLOLIVE_IMG}.light && dd if=/dev/zero of=${PROLOLIVE_IMG}.light bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.light bs=1M count=1000
 (test -f ${PROLOLIVE_IMG}.big   && dd if=/dev/zero of=${PROLOLIVE_IMG}.big   bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.big   bs=1M count=1500
 (test -f ${PROLOLIVE_IMG}.full  && dd if=/dev/zero of=${PROLOLIVE_IMG}.full  bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.full  bs=1M count=5000
-(test -f ${PROLOLIVE_IMG}       && dd if=/dev/zero of=${PROLOLIVE_IMG}       bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}       bs=1M count=3824
+test -f ${PROLOLIVE_IMG}                                                                                 || dd if=/dev/zero of=${PROLOLIVE_IMG}       bs=1M count=3824
 echo " Done."
 
 # Partitionning the image disk file
@@ -35,6 +35,8 @@ LOOP=$(kpartx -l ${PROLOLIVE_IMG} | grep -o "loop[0-9]" | head -n1)
 rm -f /dev/mapper/${LOOP}
 ln -s /dev/${LOOP} /dev/mapper/${LOOP}
 kpartx -as ${PROLOLIVE_IMG}
+dd if=/dev/zero of=/dev/mapper/${LOOP}p1 bs=1M count=1
+dd if=/dev/zero of=/dev/mapper/${LOOP}p2 bs=1M count=1
 echo " Done."
 
 # Formatting all filesystems
@@ -43,8 +45,8 @@ for f in ${PROLOLIVE_IMG}.full ${PROLOLIVE_IMG}.big ${PROLOLIVE_IMG}.light ; do
     mkfs.ext4 -q $f
 done
 
-mkfs.ext4 -F -q /dev/mapper/${LOOP}p1 -L proloboot
-mkfs.ext4 -F -q /dev/mapper/${LOOP}p2 -L persistent
+mkfs.ext4 -F /dev/mapper/${LOOP}p1 -L proloboot
+mkfs.ext4 -F /dev/mapper/${LOOP}p2 -L persistent
 echo " Done."
 
 # Mounting filesystems
