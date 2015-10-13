@@ -1,0 +1,35 @@
+URxvt.font : xft:DejaVu Sans Mono:pixelsize=12:antialiasing=true
+
+URxvt.scrollBar: false
+
+URxvt.perl-ext-common: default,matcher
+URxvt.url-launcher: /usr/bin/firefox 
+URxvt.colorUL: #4682B4
+
+URxvt.matcher.button: 1
+
+! colors (low-contrast by AddiKT1ve)
+
+URxvt*.background: #101010
+URxvt*.foreground: #CDCDCD
+
+URxvt*.transparent: true
+
+*foreground: #ababab
+*background: #292929
+*color0: #1b1b1b
+*color1: #ff6b6b
+*color2: #a3d46e
+*color3: #eaca75
+*color4: #435e87
+*color5: #cf8243
+*color6: #789ec6
+*color7: #ababab
+*color8: #555753
+*color9: #ff8d8d
+*color10: #c8e7a8
+*color11: #ffd155
+*color12: #587aa4
+*color13: #f6a24f
+*color14: #46a4ff
+*color15: #ababab

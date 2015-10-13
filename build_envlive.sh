@@ -97,7 +97,7 @@ mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PR
 mount LABEL=proloboot overlay-intermediate/boot
 pacstrap -C pacman.conf -c overlay-intermediate/ zsh grml-zsh-config tmux \
 	 lxqt xorg xorg-apps rxvt-unicode sddm firefox firefox-i18n-fr htop \
-	 networkmanager openssh clang screen ntfs-3g gdb valgrind js luajit \
+	 connman openssh clang screen ntfs-3g gdb valgrind js luajit \
 	 nodejs ocaml php
 
 umount LABEL=proloboot
@@ -113,6 +113,25 @@ pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ ed \
 	 kdevelop leafpad mono-debugger monodevelop monodevelop-debugger-gdb \
 	 netbeans openjdk8-doc scite boost ghc
 
+# Configuring system environment
+echo "Doing some configuration..."
+echo "prololive" > ${PROLOLIVE_DIR}/etc/hostname
+systemd-nspawn -q -D ${PROLOLIVE_DIR} ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
+echo 'fr_FR.UTF-8 UTF-8' >  ${PROLOLIVE_DIR}/etc/locale.gen
+echo 'en_US.UTF-8 UTF-8' >> ${PROLOLIVE_DIR}/etc/locale.gen
+echo "LANG=fr_FR.UTF-8"  >  ${PROLOLIVE_DIR}/etc/locale.conf
+echo "KEYMAP=fr-pc"      >  ${PROLOLIVE_DIR}/etc/vconsole.conf
+systemd-nspawn -q -D ${PROLOLIVE_DIR} locale-gen
+cp sddm.conf ${PROLOLIVE_DIR}/etc/
+systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable sddm
+systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable connman
+cp 00-keyboard.conf ${PROLOLIVE_DIR}/etc/X11/xorg.conf.d/
+cp .Xresources ${PROLOLIVE_DIR}/etc/skel/
+
+cat > ${PROLOLIVE_DIR}/etc/systemd/journald.conf <<EOF
+[Journal]
+Storage=none
+EOF
 
 # Configuring passwords for prologin and root users
 echo -n "Configuring users and passwords..."
@@ -129,7 +148,7 @@ cp pacman.conf ${PROLOLIVE_DIR}/etc/pacman.conf
 #echo "Installing some AUR packages..."
 #systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S yaourt --noconfirm
 #echo "prologin ALL=(ALL) NOPASSWD: ALL" >> ${PROLOLIVE_DIR}/etc/sudoers
-#systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S notepadqq-git pycharm-community sublime-text --noconfirm
+#systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S notepadqq-bin pycharm-community sublime-text lxqt-connman-applet-git --noconfirm
 #sed "s:prologin:#prologin:" -i ${PROLOLIVE_DIR}/etc/sudoers
 #echo "Done."
 
@@ -142,23 +161,6 @@ tmpfs           /home/prologin/.cache     tmpfs defaults 0 0
 tmpfs           /home/prologin/ramfs      tmpfs defaults 0 0
 EOF
 
-
-# Configuring system environment
-echo "Doing some configuration..."
-echo "prololive" > ${PROLOLIVE_DIR}/etc/hostname
-systemd-nspawn -q -D ${PROLOLIVE_DIR} ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
-echo 'fr_FR.UTF-8 UTF-8' >  ${PROLOLIVE_DIR}/etc/locale.gen
-echo 'en_US.UTF-8 UTF-8' >> ${PROLOLIVE_DIR}/etc/locale.gen
-echo "LANG=fr_FR.UTF-8"  >  ${PROLOLIVE_DIR}/etc/locale.conf
-echo "KEYMAP=fr-pc"             >  ${PROLOLIVE_DIR}/etc/vconsole.conf
-systemd-nspawn -q -D ${PROLOLIVE_DIR} locale-gen
-cp sddm.conf ${PROLOLIVE_DIR}/etc/
-systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable sddm
-
-cat > ${PROLOLIVE_DIR}/etc/systemd/journald.conf <<EOF
-[Journal]
-Storage=none
-EOF
 
 # Creating dirs who will be ramfs-mounted
 systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin mkdir /home/prologin/.cache /home/prologin/ramfs
@@ -179,15 +181,14 @@ echo " Done."
 # Creating squash filesystems
 echo "Creating squash filesystems..."
 for mountpoint in ${PROLOLIVE_DIR}.light ${PROLOLIVE_DIR}.big ${PROLOLIVE_DIR}.full ; do
-    mksquashfs ${mountpoint}/system ${PROLOLIVE_DIR}/boot/${mountpoint}.squashfs -comp lz4 -b 1048576 -e ${mountpoint}/system/proc ${mountpoint}/system/tmp ${mountpoint}/system/home ${mountpoint}/system/boot ${mountpoint}/system/dev
+    mksquashfs ${mountpoint}/system ${PROLOLIVE_DIR}/boot/${mountpoint}.squashfs -comp lz4 -b 1048576 -e ${mountpoint}/system/proc ${mountpoint}/system/tmp ${mountpoint}/system/boot ${mountpoint}/system/dev
 done
 
 cp documentation.squashfs ${PROLOLIVE_DIR}/boot/
 
 # Unmounting all mounted filesystems
 echo -n "Unmounting filesystems..."
-umount LABEL=proloboot
-umount ${PROLOLIVE_DIR}    # All FS merged minus /boot
+umount -R ${PROLOLIVE_DIR}
 umount ${PROLOLIVE_DIR}.full
 umount ${PROLOLIVE_DIR}.big
 umount ${PROLOLIVE_DIR}.light
