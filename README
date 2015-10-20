@@ -3,7 +3,20 @@ Dépendances pour lancer le script :
 - Paquets requis          : syslinux squashfs-tools
 - Paquets de l'AUR requis : multipath-tools-git
 
+Requis :
+- Un fichier PNG en 1024x768 nommé "logo.png" (il sert de boot splash)
+
 TODO:
+- Utiliser une variable ${LOGOFILE} et rajouter un cp ${LOGOFILE} …/syslinux/logo.png
+- Adapter la config syslinux pour supporter un ${LOGOFILE}
 - Trouver et/ou crafter un wallpaper frais pour syslinux
-- Configurer lxqt et envoyer un /home tar'd pour créer un squashfs
+- Configurer lxqt et le reste, et utiliser un tar -cf home.tar.xz /home pour l'intégrer au build de l'image
 - Ajouter des lanceurs pour netbeans, eclipse, notepadqq, etc. pour un accès rapide
+
+CUSTOMISATION
+- Firefox  : thème, page d'accueil
+- Syslinux : logo.png
+- Bureau   : wallpaper
+- LXQT     : thème, launchers sur le bureau
+- Emacs    : .emacs
+- Vim      : .vimrc

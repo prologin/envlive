@@ -12,7 +12,6 @@ umount -R ${PROLOLIVE_DIR}.light 2>/dev/null
 umount -R ${PROLOLIVE_DIR}.big   2>/dev/null
 umount -R ${PROLOLIVE_DIR}.full  2>/dev/null
 umount -R *                      2>/dev/null
-kpartx -d ${PROLOLIVE_IMG}       2>/dev/null
 echo " Done."
 
 
@@ -31,12 +30,10 @@ echo " Done."
 
 # Creating loop devices for the disk image file
 echo -n "Generating device mappings for the disk image..."
-LOOP=$(kpartx -l ${PROLOLIVE_IMG} | grep -o "loop[0-9]" | head -n1)
-rm -f /dev/mapper/${LOOP}
-ln -s /dev/${LOOP} /dev/mapper/${LOOP}
-kpartx -as ${PROLOLIVE_IMG}
-dd if=/dev/zero of=/dev/mapper/${LOOP}p1 bs=1M count=1
-dd if=/dev/zero of=/dev/mapper/${LOOP}p2 bs=1M count=1
+LOOP=$(partx -av ${PROLOLIVE_IMG} | grep -o "loop[0-9]" | tail -n1)
+# To avoid annoying messages about already existing filesystems.
+dd if=/dev/zero of=/dev/${LOOP}p1 bs=1M count=1
+dd if=/dev/zero of=/dev/${LOOP}p2 bs=1M count=1
 echo " Done."
 
 # Formatting all filesystems
@@ -45,8 +42,8 @@ for f in ${PROLOLIVE_IMG}.full ${PROLOLIVE_IMG}.big ${PROLOLIVE_IMG}.light ; do
     mkfs.ext4 -q $f
 done
 
-mkfs.ext4 -F /dev/mapper/${LOOP}p1 -L proloboot
-mkfs.ext4 -F /dev/mapper/${LOOP}p2 -L persistent
+mkfs.ext4 -F /dev/${LOOP}p1 -L proloboot
+mkfs.ext4 -F /dev/${LOOP}p2 -L persistent
 echo " Done."
 
 # Mounting filesystems
@@ -70,6 +67,7 @@ echo " Done."
 
 echo "Installing packages available in repositories..."
 echo "Installing core system packages on the lower layer"
+# Binding directory to a mountpoint is a good way to ensure a good pacstrap behaviour
 mount -o bind ${PROLOLIVE_DIR}.light/system first-bind/
 mkdir -p first-bind/boot
 mount LABEL=proloboot first-bind/boot
@@ -105,7 +103,7 @@ umount overlay-intermediate
 
 echo "Installing the biggest packages on the top layer (${PROLOLIVE_DIR})"
 mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.big/system:${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${PROLOLIVE_DIR}
-mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}/boot
+mount LABEL=proloboot ${PROLOLIVE_DIR}/boot
 pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ ed \
 	 clang-analyzer clang-tools-extra \
 	 git mercurial ntp reptyr rlwrap rsync samba wget \
@@ -168,12 +166,11 @@ echo "Done."
 
 # Configuring boot system
 echo -n "Installing syslinux..."
-dd if=${PROLOLIVE_DIR}/usr/lib/syslinux/bios/mbr.bin of=/dev/mapper/${LOOP} bs=440 count=1
+dd if=${PROLOLIVE_DIR}/usr/lib/syslinux/bios/mbr.bin of=/dev/${LOOP} bs=440 count=1
 mkdir -p ${PROLOLIVE_DIR}/boot/syslinux
 cp -r ${PROLOLIVE_DIR}/usr/lib/syslinux/bios/*.c32 ${PROLOLIVE_DIR}/boot/syslinux/
 extlinux --device /dev/disk/by-label/proloboot --install ${PROLOLIVE_DIR}/boot/syslinux
 
-rm /dev/mapper/${LOOP}
 cp logo.png ${PROLOLIVE_DIR}/boot/syslinux/ || echo -n " missing logo.png file..."
 cp syslinux.cfg ${PROLOLIVE_DIR}/boot/syslinux/
 echo " Done."
