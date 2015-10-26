@@ -1,10 +1,11 @@
 Dépendances pour lancer le script :
-- OS préféré              : Arch Linux
-- Paquets requis          : syslinux squashfs-tools
+- OS préféré (~requis)    : Arch Linux
+- Paquets requis          : syslinux squashfs-tools arch-install-scripts
 - Paquets de l'AUR requis : multipath-tools-git
 
 Requis :
 - Un fichier PNG en 1024x768 nommé "logo.png" (il sert de boot splash)
+- Un fichier documentation.squashfs -- dispo sur http://srv.ordiclic.eu/documentation.squashfs
 
 TODO:
 - Utiliser une variable ${LOGOFILE} et rajouter un cp ${LOGOFILE} …/syslinux/logo.png

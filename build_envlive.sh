@@ -12,6 +12,7 @@ umount -R ${PROLOLIVE_DIR}.light 2>/dev/null
 umount -R ${PROLOLIVE_DIR}.big   2>/dev/null
 umount -R ${PROLOLIVE_DIR}.full  2>/dev/null
 umount -R *                      2>/dev/null
+kpartx -r ${PROLOLIVE_IMG}
 echo " Done."
 
 
@@ -30,10 +31,10 @@ echo " Done."
 
 # Creating loop devices for the disk image file
 echo -n "Generating device mappings for the disk image..."
-LOOP=$(partx -av ${PROLOLIVE_IMG} | grep -o "loop[0-9]" | tail -n1)
+LOOP=$(kpartx -av ${PROLOLIVE_IMG} | grep -o "loop[0-9]" | tail -n1)
 # To avoid annoying messages about already existing filesystems.
-dd if=/dev/zero of=/dev/${LOOP}p1 bs=1M count=1
-dd if=/dev/zero of=/dev/${LOOP}p2 bs=1M count=1
+dd if=/dev/zero of=/dev/mapper/${LOOP}p1 bs=1M count=1
+dd if=/dev/zero of=/dev/mapper/${LOOP}p2 bs=1M count=1
 echo " Done."
 
 # Formatting all filesystems
@@ -42,8 +43,8 @@ for f in ${PROLOLIVE_IMG}.full ${PROLOLIVE_IMG}.big ${PROLOLIVE_IMG}.light ; do
     mkfs.ext4 -q $f
 done
 
-mkfs.ext4 -F /dev/${LOOP}p1 -L proloboot
-mkfs.ext4 -F /dev/${LOOP}p2 -L persistent
+mkfs.ext4 -F /dev/mapper/${LOOP}p1 -L proloboot
+mkfs.ext4 -F /dev/mapper/${LOOP}p2 -L persistent
 echo " Done."
 
 # Mounting filesystems
@@ -70,7 +71,7 @@ echo "Installing core system packages on the lower layer"
 # Binding directory to a mountpoint is a good way to ensure a good pacstrap behaviour
 mount -o bind ${PROLOLIVE_DIR}.light/system first-bind/
 mkdir -p first-bind/boot
-mount LABEL=proloboot first-bind/boot
+mount /dev/mapper/${LOOP}p1 first-bind/boot
 pacstrap -C pacman.conf -c first-bind base base-devel syslinux
 
 
@@ -89,21 +90,21 @@ echo "Done."
 
 
 echo "Installing some not-too-big packages on the middle layer (overlay-intermediate)"
-umount LABEL=proloboot
+umount /dev/mapper/${LOOP}p1
 umount first-bind
 mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system,workdir=${PROLOLIVE_DIR}.big/work overlay-intermediate/
-mount LABEL=proloboot overlay-intermediate/boot
+mount /dev/mapper/${LOOP}p1 overlay-intermediate/boot
 pacstrap -C pacman.conf -c overlay-intermediate/ zsh grml-zsh-config tmux \
 	 lxqt xorg xorg-apps rxvt-unicode sddm firefox firefox-i18n-fr htop \
 	 connman openssh clang screen ntfs-3g gdb valgrind js luajit \
 	 nodejs ocaml php
 
-umount LABEL=proloboot
+umount /dev/mapper/${LOOP}p1
 umount overlay-intermediate
 
 echo "Installing the biggest packages on the top layer (${PROLOLIVE_DIR})"
 mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.big/system:${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${PROLOLIVE_DIR}
-mount LABEL=proloboot ${PROLOLIVE_DIR}/boot
+mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}/boot
 pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ ed \
 	 clang-analyzer clang-tools-extra \
 	 git mercurial ntp reptyr rlwrap rsync samba wget \
@@ -115,6 +116,7 @@ pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ ed \
 echo "Doing some configuration..."
 echo "prololive" > ${PROLOLIVE_DIR}/etc/hostname
 systemd-nspawn -q -D ${PROLOLIVE_DIR} ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
+#systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl mask systemd-journald.service
 echo 'fr_FR.UTF-8 UTF-8' >  ${PROLOLIVE_DIR}/etc/locale.gen
 echo 'en_US.UTF-8 UTF-8' >> ${PROLOLIVE_DIR}/etc/locale.gen
 echo "LANG=fr_FR.UTF-8"  >  ${PROLOLIVE_DIR}/etc/locale.conf
@@ -128,7 +130,7 @@ cp .Xresources ${PROLOLIVE_DIR}/etc/skel/
 
 cat > ${PROLOLIVE_DIR}/etc/systemd/journald.conf <<EOF
 [Journal]
-Storage=none
+Storage=volatile
 EOF
 
 # Configuring passwords for prologin and root users
@@ -142,18 +144,19 @@ echo " Done."
 cp pacman.conf ${PROLOLIVE_DIR}/etc/pacman.conf
 
 
-## Installing yaourt and some AUR packages
-#echo "Installing some AUR packages..."
-#systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S yaourt --noconfirm
-#echo "prologin ALL=(ALL) NOPASSWD: ALL" >> ${PROLOLIVE_DIR}/etc/sudoers
-#systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S notepadqq-bin pycharm-community sublime-text lxqt-connman-applet-git --noconfirm
-#sed "s:prologin:#prologin:" -i ${PROLOLIVE_DIR}/etc/sudoers
-#echo "Done."
+# Installing yaourt and some AUR packages
+echo "Installing some AUR packages..."
+systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S yaourt --noconfirm
+echo "prologin ALL=(ALL) NOPASSWD: ALL" >> ${PROLOLIVE_DIR}/etc/sudoers
+systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -Rdd libqtxdg liblxqt --noconfirm
+systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S libqtxdg-git liblxqt-git --noconfirm
+systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S notepadqq-bin pycharm-community sublime-text lxqt-connman-applet-git --noconfirm
+sed 's:prologin:#prologin:' -i ${PROLOLIVE_DIR}/etc/sudoers
+echo "Done."
 
 # Configuring fstab
 cat > ${PROLOLIVE_DIR}/etc/fstab <<EOF
 LABEL=proloboot /boot                     ext4  defaults 0 0
-tmpfs           /var/log                  tmpfs defaults 0 0
 tmpfs           /var/cache/pacman         tmpfs defaults 0 0
 tmpfs           /home/prologin/.cache     tmpfs defaults 0 0
 tmpfs           /home/prologin/ramfs      tmpfs defaults 0 0
