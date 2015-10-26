@@ -172,7 +172,7 @@ echo -n "Installing syslinux..."
 dd if=${PROLOLIVE_DIR}/usr/lib/syslinux/bios/mbr.bin of=/dev/${LOOP} bs=440 count=1
 mkdir -p ${PROLOLIVE_DIR}/boot/syslinux
 cp -r ${PROLOLIVE_DIR}/usr/lib/syslinux/bios/*.c32 ${PROLOLIVE_DIR}/boot/syslinux/
-extlinux --device /dev/disk/by-label/proloboot --install ${PROLOLIVE_DIR}/boot/syslinux
+extlinux --device /dev/mapper/${LOOP}p1 --install ${PROLOLIVE_DIR}/boot/syslinux
 
 cp logo.png ${PROLOLIVE_DIR}/boot/syslinux/ || echo -n " missing logo.png file..."
 cp syslinux.cfg ${PROLOLIVE_DIR}/boot/syslinux/
@@ -181,7 +181,7 @@ echo " Done."
 # Creating squash filesystems
 echo "Creating squash filesystems..."
 for mountpoint in ${PROLOLIVE_DIR}.light ${PROLOLIVE_DIR}.big ${PROLOLIVE_DIR}.full ; do
-    mksquashfs ${mountpoint}/system ${PROLOLIVE_DIR}/boot/${mountpoint}.squashfs -comp lz4 -b 1048576 -e ${mountpoint}/system/proc ${mountpoint}/system/tmp ${mountpoint}/system/boot ${mountpoint}/system/dev
+    mksquashfs ${mountpoint}/system ${PROLOLIVE_DIR}/boot/${mountpoint}.squashfs -comp xz -Xdict-size 100% -b 1048576 -e ${mountpoint}/system/proc ${mountpoint}/system/tmp ${mountpoint}/system/boot ${mountpoint}/system/dev
 done
 
 cp documentation.squashfs ${PROLOLIVE_DIR}/boot/
