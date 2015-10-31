@@ -12,7 +12,7 @@ umount -R ${PROLOLIVE_DIR}.light 2>/dev/null
 umount -R ${PROLOLIVE_DIR}.big   2>/dev/null
 umount -R ${PROLOLIVE_DIR}.full  2>/dev/null
 umount -R *                      2>/dev/null
-kpartx -r ${PROLOLIVE_IMG}
+kpartx -r ${PROLOLIVE_IMG}       2>/dev/null
 echo " Done."
 
 
@@ -89,15 +89,16 @@ systemd-nspawn -q -D first-bind mkinitcpio -p linux
 echo "Done."
 
 
-echo "Installing some not-too-big packages on the middle layer (overlay-intermediate)"
+echo "Installing interpreters (GHC apart) and GUI elems on the intermediate layer"
 umount /dev/mapper/${LOOP}p1
 umount first-bind
 mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system,workdir=${PROLOLIVE_DIR}.big/work overlay-intermediate/
 mount /dev/mapper/${LOOP}p1 overlay-intermediate/boot
-pacstrap -C pacman.conf -c overlay-intermediate/ zsh grml-zsh-config tmux \
-	 lxqt xorg xorg-apps rxvt-unicode sddm firefox firefox-i18n-fr htop \
-	 connman openssh clang screen ntfs-3g gdb valgrind js luajit \
-	 nodejs ocaml php
+pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ boost connman ed firefox \
+	 firefox-i18n-fr fpc gambit-c gcc-ada gdb git grml-zsh-config htop \
+	 jdk7-openjdk lxqt luajit mono mono-basic mono-debugger nodejs ntp \
+	 ntfs-3g ocaml openssh php python python2 rlwrap rxvt-unicode screen \
+	 sddm tmux valgrind wget xorg xorg-apps zsh
 
 umount /dev/mapper/${LOOP}p1
 umount overlay-intermediate
@@ -105,12 +106,10 @@ umount overlay-intermediate
 echo "Installing the biggest packages on the top layer (${PROLOLIVE_DIR})"
 mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.big/system:${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${PROLOLIVE_DIR}
 mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}/boot
-pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ ed \
-	 clang-analyzer clang-tools-extra \
-	 git mercurial ntp reptyr rlwrap rsync samba wget \
-	 codeblocks eclipse eric eric-i18n-fr geany kate \
-	 kdevelop leafpad mono-debugger monodevelop monodevelop-debugger-gdb \
-	 netbeans openjdk8-doc scite boost ghc
+pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ codeblocks eclipse eric \
+	 eric-i18n-fr geany ghc git kate kdevelop leafpad mercurial \
+	 monodevelop monodevelop-debugger-gdb netbeans openjdk7-doc openssh \
+	 reptyr rsync samba scite sublime-text
 
 # Configuring system environment
 echo "Doing some configuration..."
@@ -127,6 +126,7 @@ systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable sddm
 systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable connman
 cp 00-keyboard.conf ${PROLOLIVE_DIR}/etc/X11/xorg.conf.d/
 cp .Xresources ${PROLOLIVE_DIR}/etc/skel/
+echo 'alias ocaml="rlwrap ocaml"' >> /etc/skel/.zshrc
 
 cat > ${PROLOLIVE_DIR}/etc/systemd/journald.conf <<EOF
 [Journal]
@@ -150,7 +150,9 @@ systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S yaourt --noconfirm
 echo "prologin ALL=(ALL) NOPASSWD: ALL" >> ${PROLOLIVE_DIR}/etc/sudoers
 systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -Rdd libqtxdg liblxqt --noconfirm
 systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S libqtxdg-git liblxqt-git --noconfirm
-systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S notepadqq-bin pycharm-community sublime-text lxqt-connman-applet-git --noconfirm
+systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S --noconfirm \
+	       notepadqq-bin pycharm-community sublime-text \
+	       lxqt-connman-applet-git esotope-bfc-git fsharp
 sed 's:prologin:#prologin:' -i ${PROLOLIVE_DIR}/etc/sudoers
 echo "Done."
 
