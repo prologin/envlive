@@ -94,7 +94,7 @@ umount /dev/mapper/${LOOP}p1
 umount first-bind
 mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system,workdir=${PROLOLIVE_DIR}.big/work overlay-intermediate/
 mount /dev/mapper/${LOOP}p1 overlay-intermediate/boot
-pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ boost ed firefox firefox-i18n-fr \
+pacstrap -C pacman.conf -c overlay-intermediate/ boost ed firefox firefox-i18n-fr \
 	 fpc gambit-c gcc-ada gdb git grml-zsh-config htop jdk7-openjdk lxqt \
 	 luajit mono mono-basic mono-debugger networkmanager nodejs ntp ntfs-3g \
 	 ocaml openssh php python python2 rlwrap rxvt-unicode screen sddm tmux \
@@ -146,8 +146,8 @@ cp pacman.conf ${PROLOLIVE_DIR}/etc/pacman.conf
 
 # Installing yaourt and some AUR packages
 echo "Installing some precompiled packages..."
-systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S fsharp notepadqq-bin \
-	       pycharm-community sublime-text esotope-bfc-git
+systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S --noconfirm fsharp \
+	       notepadqq-bin pycharm-community sublime-text esotope-bfc-git
 echo "Done."
 
 
