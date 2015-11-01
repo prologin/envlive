@@ -94,11 +94,11 @@ umount /dev/mapper/${LOOP}p1
 umount first-bind
 mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system,workdir=${PROLOLIVE_DIR}.big/work overlay-intermediate/
 mount /dev/mapper/${LOOP}p1 overlay-intermediate/boot
-pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ boost connman ed firefox \
-	 firefox-i18n-fr fpc gambit-c gcc-ada gdb git grml-zsh-config htop \
-	 jdk7-openjdk lxqt luajit mono mono-basic mono-debugger nodejs ntp \
-	 ntfs-3g ocaml openssh php python python2 rlwrap rxvt-unicode screen \
-	 sddm tmux valgrind wget xorg xorg-apps zsh
+pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ boost ed firefox firefox-i18n-fr \
+	 fpc gambit-c gcc-ada gdb git grml-zsh-config htop jdk7-openjdk lxqt \
+	 luajit mono mono-basic mono-debugger networkmanager nodejs ntp ntfs-3g \
+	 ocaml openssh php python python2 rlwrap rxvt-unicode screen sddm tmux \
+	 valgrind wget xorg xorg-apps zsh
 
 umount /dev/mapper/${LOOP}p1
 umount overlay-intermediate
@@ -123,7 +123,7 @@ echo "KEYMAP=fr-pc"      >  ${PROLOLIVE_DIR}/etc/vconsole.conf
 systemd-nspawn -q -D ${PROLOLIVE_DIR} locale-gen
 cp sddm.conf ${PROLOLIVE_DIR}/etc/
 systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable sddm
-systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable connman
+systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable NetworkManager
 cp 00-keyboard.conf ${PROLOLIVE_DIR}/etc/X11/xorg.conf.d/
 cp .Xresources ${PROLOLIVE_DIR}/etc/skel/
 echo 'alias ocaml="rlwrap ocaml"' >> /etc/skel/.zshrc
@@ -145,16 +145,11 @@ cp pacman.conf ${PROLOLIVE_DIR}/etc/pacman.conf
 
 
 # Installing yaourt and some AUR packages
-echo "Installing some AUR packages..."
-systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S yaourt --noconfirm
-echo "prologin ALL=(ALL) NOPASSWD: ALL" >> ${PROLOLIVE_DIR}/etc/sudoers
-systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -Rdd libqtxdg liblxqt --noconfirm
-systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S libqtxdg-git liblxqt-git --noconfirm
-systemd-nspawn -q -D ${PROLOLIVE_DIR} -u prologin yaourt -S --noconfirm \
-	       notepadqq-bin pycharm-community sublime-text \
-	       lxqt-connman-applet-git esotope-bfc-git fsharp
-sed 's:prologin:#prologin:' -i ${PROLOLIVE_DIR}/etc/sudoers
+echo "Installing some precompiled packages..."
+systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S fsharp notepadqq-bin \
+	       pycharm-community sublime-text esotope-bfc-git
 echo "Done."
+
 
 # Configuring fstab
 cat > ${PROLOLIVE_DIR}/etc/fstab <<EOF
