@@ -18,10 +18,10 @@ echo " Done."
 
 # Allocating space for filesystems and the root
 echo -n "Allocating filesystems files (will not overwrite existing files"
-(test -f ${PROLOLIVE_IMG}.light && dd if=/dev/zero of=${PROLOLIVE_IMG}.light bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.light bs=1M count=1000
-(test -f ${PROLOLIVE_IMG}.big   && dd if=/dev/zero of=${PROLOLIVE_IMG}.big   bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.big   bs=1M count=1500
-(test -f ${PROLOLIVE_IMG}.full  && dd if=/dev/zero of=${PROLOLIVE_IMG}.full  bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.full  bs=1M count=5000
-test -f ${PROLOLIVE_IMG}                                                                                 || dd if=/dev/zero of=${PROLOLIVE_IMG}       bs=1M count=3824
+(test -f ${PROLOLIVE_IMG}.light && dd if=/dev/zero of=${PROLOLIVE_IMG}.light bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.light bs=1M count=1 seek=1000
+(test -f ${PROLOLIVE_IMG}.big   && dd if=/dev/zero of=${PROLOLIVE_IMG}.big   bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.big   bs=1M count=1 seek=2500
+(test -f ${PROLOLIVE_IMG}.full  && dd if=/dev/zero of=${PROLOLIVE_IMG}.full  bs=1M count=1 conv=notrunc) || dd if=/dev/zero of=${PROLOLIVE_IMG}.full  bs=1M count=1 seek=5000
+test -f ${PROLOLIVE_IMG}                                                                                 || dd if=/dev/zero of=${PROLOLIVE_IMG}       bs=1M count=1 seek=3823
 echo " Done."
 
 # Partitionning the image disk file
@@ -89,7 +89,7 @@ systemd-nspawn -q -D first-bind mkinitcpio -p linux
 echo "Done."
 
 
-echo "Installing interpreters (GHC apart) and GUI elems on the intermediate layer"
+echo "Installing interpreters (GHC apart) and graphical packages on the intermediate layer"
 umount /dev/mapper/${LOOP}p1
 umount first-bind
 mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system,workdir=${PROLOLIVE_DIR}.big/work overlay-intermediate/
@@ -107,9 +107,10 @@ echo "Installing the biggest packages on the top layer (${PROLOLIVE_DIR})"
 mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.big/system:${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${PROLOLIVE_DIR}
 mount /dev/mapper/${LOOP}p1 ${PROLOLIVE_DIR}/boot
 pacstrap -C pacman.conf -c ${PROLOLIVE_DIR}/ codeblocks eclipse eric \
-	 eric-i18n-fr geany ghc git kate kdevelop leafpad mercurial \
-	 monodevelop monodevelop-debugger-gdb netbeans openjdk7-doc openssh \
-	 reptyr rsync samba scite sublime-text
+	 esotope-bfc-git eric-i18n-fr fsharp geany ghc kate kdevelop \
+	 leafpad mercurial monodevelop monodevelop-debugger-gdb netbeans \
+	 notepadqq-bin openjdk7-doc pycharm-community reptyr rsync \
+	 samba scite
 
 # Configuring system environment
 echo "Doing some configuration..."
@@ -127,6 +128,7 @@ systemd-nspawn -q -D ${PROLOLIVE_DIR} systemctl enable NetworkManager
 cp 00-keyboard.conf ${PROLOLIVE_DIR}/etc/X11/xorg.conf.d/
 cp .Xresources ${PROLOLIVE_DIR}/etc/skel/
 echo 'alias ocaml="rlwrap ocaml"' >> /etc/skel/.zshrc
+echo 'source /etc/profile.d/jre.sh' >> /etc/skel/.zshrc
 
 cat > ${PROLOLIVE_DIR}/etc/systemd/journald.conf <<EOF
 [Journal]
@@ -142,13 +144,6 @@ echo " Done."
 
 # Copying the pacman config
 cp pacman.conf ${PROLOLIVE_DIR}/etc/pacman.conf
-
-
-# Installing yaourt and some AUR packages
-echo "Installing some precompiled packages..."
-systemd-nspawn -q -D ${PROLOLIVE_DIR} pacman -S --noconfirm fsharp \
-	       notepadqq-bin pycharm-community sublime-text esotope-bfc-git
-echo "Done."
 
 
 # Configuring fstab
