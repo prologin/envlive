@@ -1,10 +1,10 @@
 Dépendances pour lancer le script :
 - OS préféré (~requis)    : Arch Linux
 - Paquets requis          : syslinux squashfs-tools arch-install-scripts
-- Paquets de l'AUR requis : multipath-tools-git
+- Paquets de l'AUR requis : multipath-tools-git (pour kpartx)
 
 Requis :
-- Un fichier PNG en 1024x768 nommé "logo.png" (il sert de boot splash)
+- Un fichier PNG en 1024x768 nommé "logo.png" (il sert de boot splash) -- dispo sur http://srv.ordiclic.eu/logo.png
 - Un fichier documentation.squashfs -- dispo sur http://srv.ordiclic.eu/documentation.squashfs
 
 TODO:
