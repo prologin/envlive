@@ -50,7 +50,7 @@ mkemptydir ${PROLOLIVE_DIR}.bind.big   # Bind ${PROLOLIVE_DIR}.big/system here
 mkemptydir overlay-intermediate        # Overlay-mount ${PROLOLIVE_DIR}.light and ${PROLOLIVE_DIR}.big
 
 for mountpoint in ${PROLOLIVE_DIR}.light ${PROLOLIVE_DIR}.big ${PROLOLIVE_DIR}.full ; do
-    mkdir ${MOUNTPOINT}/{work,system} # Create all of them for harmonization when making squashfs
+    mkdir ${mountpoint}/{work,system} # Create all of them for harmonization when making squashfs
 done
 
 mount -o bind ${PROLOLIVE_DIR}.light/system ${PROLOLIVE_DIR}.bind.light
