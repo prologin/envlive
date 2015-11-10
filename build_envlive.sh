@@ -21,7 +21,7 @@ echo " Done."
 # Allocate space for filesystems and the root
 echo "Allocating filesystems files (will not overwrite existing files)..."
 rm -f ${PROLOLIVE_IMG}
-dd if=/dev/zero of=${PROLOLIVE_IMG} bs=1M count=1 seek=3823
+dd if=/dev/zero of=${PROLOLIVE_IMG} bs=1M count=3824
 echo "Done."
 
 # Partition the image disk file
@@ -31,20 +31,17 @@ sfdisk ${PROLOLIVE_IMG} < prololive.dos
 # Create loop devices for the disk image file
 echo "Generate device mappings for the disk image..."
 LOOP=$(kpartx -av ${PROLOLIVE_IMG} | grep -o "loop[0-9]" | tail -n1)
-# To avoid annoying messages about already existing filesystems.
-dd if=/dev/zero of=/dev/mapper/${LOOP}p1 bs=1M count=1
-dd if=/dev/zero of=/dev/mapper/${LOOP}p2 bs=1M count=1
 echo "Done."
 
-mkfs.ext4 /dev/mapper/${LOOP}p1 -L proloboot
-mkfs.ext4 /dev/mapper/${LOOP}p2 -L persistent
+mkfs.ext4 -F /dev/mapper/${LOOP}p1 -L proloboot
+mkfs.ext4 -F /dev/mapper/${LOOP}p2 -L persistent
 
 # Mount filesystems
 echo -n "Create mountpoints filesystems..."
 mkemptydir ${PROLOLIVE_DIR}/           # Mount the full overlayfs r/w here
 mkemptydir ${PROLOLIVE_DIR}.light      # Install only the base system here
 mkemptydir ${PROLOLIVE_DIR}.big        # Install interpreters (ghc apart) here, as well as WE/DM
-mkemptydir ${PROLOLIVE_DIR}.full       # Intall the biggest packages here
+mkemptydir ${PROLOLIVE_DIR}.full       # Install the biggest packages here
 mkemptydir ${PROLOLIVE_DIR}.bind.light # Bind ${PROLOLIVE_DIR}.light/system here
 mkemptydir ${PROLOLIVE_DIR}.bind.big   # Bind ${PROLOLIVE_DIR}.big/system here
 mkemptydir overlay-intermediate        # Overlay-mount ${PROLOLIVE_DIR}.light and ${PROLOLIVE_DIR}.big
@@ -54,7 +51,6 @@ for mountpoint in ${PROLOLIVE_DIR}.light ${PROLOLIVE_DIR}.big ${PROLOLIVE_DIR}.f
 done
 
 mount -o bind ${PROLOLIVE_DIR}.light/system ${PROLOLIVE_DIR}.bind.light
-mount -o bind ${PROLOLIVE_DIR}.big/system ${PROLOLIVE_DIR}.bind.big
 
 echo "Install packages..."
 echo "Install core system packages on the lower layer"
@@ -75,13 +71,14 @@ echo "Generate the initcpio ramdisk..."
 cp mkinitcpio.conf ${ROOT}/etc/mkinitcpio.conf
 systemd-nspawn -q -D ${ROOT} mkinitcpio -p linux
 
-
-echo "Install interpreters (GHC apart) and graphical packages on the intermediate layer"
 umount /dev/mapper/${LOOP}p1
 umount ${ROOT}
+
+echo "Install interpreters (GHC apart) and graphical packages on the intermediate layer"
 ROOT=overlay-intermediate
-mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.bind.light,upperdir=${PROLOLIVE_DIR}.big/system,workdir=${PROLOLIVE_DIR}.big/work ${ROOT} || exit 42
-mount /dev/mapper/${LOOP}p1 ${ROOT}/boot
+mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.big/system,workdir=${PROLOLIVE_DIR}.big/work ${ROOT} || exit 42
+mkdir -p ${ROOT}/boot
+mount /dev/mapper/${LOOP}p1 ${ROOT}/boot || exit 42
 pacstrap -C pacman.conf -c ${ROOT}/ boost ed firefox firefox-i18n-fr \
 	 fpc gambit-c gcc-ada gdb git grml-zsh-config htop jdk7-openjdk lxqt \
 	 luajit mono mono-basic mono-debugger networkmanager nodejs ntp ntfs-3g \
@@ -93,8 +90,9 @@ umount ${ROOT}
 
 echo "Install remaining and big packages on the top layer (${PROLOLIVE_DIR})"
 ROOT=${PROLOLIVE_DIR}
-mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.bind.big:${PROLOLIVE_DIR}.bind.light,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${ROOT} || exit 42
-mount /dev/mapper/${LOOP}p1 ${ROOT}/boot
+mount -t overlay overlay -o lowerdir=${PROLOLIVE_DIR}.big/system:${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.full/system/,workdir=${PROLOLIVE_DIR}.full/work/ ${ROOT} || exit 42
+mkdir -p ${ROOT}/boot
+mount /dev/mapper/${LOOP}p1 ${ROOT}/boot || exit 42
 pacstrap -C pacman.conf -c ${ROOT}/ codeblocks eclipse eric \
 	 esotope-bfc-git eric-i18n-fr fsharp geany ghc kate kdevelop \
 	 leafpad mercurial monodevelop monodevelop-debugger-gdb netbeans \
@@ -156,22 +154,24 @@ cp logo.png ${ROOT}/boot/syslinux/ || echo -n " missing logo.png file..."
 cp syslinux.cfg ${ROOT}/boot/syslinux/
 echo " Done."
 
+umount ${ROOT}/boot
+umount ${ROOT}
+
+ROOT=${PROLOLIVE_DIR}
+
+mount /dev/mapper/${LOOP}p1 ${ROOT}
+cp documentation.squashfs ${ROOT}/boot/
+
+
 # Creating squash filesystems
 echo "Create squash filesystems..."
 for mountpoint in ${PROLOLIVE_DIR}.light ${PROLOLIVE_DIR}.big ${PROLOLIVE_DIR}.full ; do
-    mksquashfs ${mountpoint}/system ${PROLOLIVE_DIR}/boot/${mountpoint}.squashfs -comp xz -Xdict-size 100% -b 1048576 -e ${mountpoint}/system/proc ${mountpoint}/system/tmp ${mountpoint}/system/boot ${mountpoint}/system/dev
+    mksquashfs ${mountpoint}/system ${ROOT}/${mountpoint}.squashfs -comp xz -Xdict-size 100% -b 1048576 -e ${mountpoint}/system/{proc,boot,tmp,sys,dev}
 done
-
-cp documentation.squashfs ${ROOT}/boot/
 
 # Unmounting all mounted filesystems
 echo -n "Unmounting filesystems..."
-umount -R ${PROLOLIVE_DIR}
-umount ${PROLOLIVE_DIR}.full
-umount ${PROLOLIVE_DIR}.big
-umount ${PROLOLIVE_DIR}.light
-umount ${PROLOLIVE_DIR}.bind.light
-umount ${PROLOLIVE_DIR].bind.big
+umount ${ROOT}
 echo " Done."
 
 echo "The end."
