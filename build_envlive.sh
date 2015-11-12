@@ -21,7 +21,7 @@ echo " Done."
 # Allocate space for filesystems and the root
 echo "Allocating filesystems files (will not overwrite existing files)..."
 rm -f ${PROLOLIVE_IMG}
-dd if=/dev/zero of=${PROLOLIVE_IMG} bs=1M seek=3823 count=1
+dd if=/dev/zero of=${PROLOLIVE_IMG} bs=1M count=3824
 echo "Done."
 
 # Partition the image disk file
@@ -160,7 +160,7 @@ umount ${ROOT}
 BOOT=${PROLOLIVE_DIR}
 
 mount /dev/mapper/${LOOP}p1 ${BOOT} || exit 42
-cp -v documentation.squashfs ${BOOT}/
+cp -v documentation.squashfs ${BOOT}/ || exit 42
 
 
 # Creating squash filesystems
@@ -173,5 +173,7 @@ done
 echo -n "Unmounting filesystems..."
 umount ${BOOT}
 echo " Done."
+
+kpartx -r ${PROLOLIVE_IMG}
 
 echo "The end."
