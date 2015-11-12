@@ -150,28 +150,28 @@ mkdir -p ${ROOT}/boot/syslinux
 cp -vr ${ROOT}/usr/lib/syslinux/bios/*.c32 ${ROOT}/boot/syslinux/
 extlinux --device /dev/mapper/${LOOP}p1 --install ${ROOT}/boot/syslinux
 
-cp -v logo.png ${ROOT}/boot/syslinux/ || echo -n " missing logo.png file..."
+cp -v logo.png ${ROOT}/boot/syslinux/ || (echo -n " missing logo.png file..." && exit 42)
 cp -v syslinux.cfg ${ROOT}/boot/syslinux/
 echo " Done."
 
 umount ${ROOT}/boot
 umount ${ROOT}
 
-ROOT=${PROLOLIVE_DIR}
+BOOT=${PROLOLIVE_DIR}
 
-mount /dev/mapper/${LOOP}p1 ${ROOT} || exit 42
-cp -v documentation.squashfs ${ROOT}/
+mount /dev/mapper/${LOOP}p1 ${BOOT} || exit 42
+cp -v documentation.squashfs ${BOOT}/
 
 
 # Creating squash filesystems
 echo "Create squash filesystems..."
 for mountpoint in ${PROLOLIVE_DIR}.light ${PROLOLIVE_DIR}.big ${PROLOLIVE_DIR}.full ; do
-    mksquashfs ${mountpoint}/system ${ROOT}/${mountpoint}.squashfs -comp xz -Xdict-size 100% -b 1048576 -e ${mountpoint}/system/{proc,boot,tmp,sys,dev}
+    mksquashfs ${mountpoint}/system ${BOOT}/${mountpoint}.squashfs -comp xz -Xdict-size 100% -b 1048576 -e ${mountpoint}/system/{proc,boot,tmp,sys,dev}
 done
 
 # Unmounting all mounted filesystems
 echo -n "Unmounting filesystems..."
-umount ${ROOT}
+umount ${BOOT}
 echo " Done."
 
 echo "The end."
