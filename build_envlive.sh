@@ -160,8 +160,6 @@ cp -v logo.png "${ROOT}/boot/syslinux/" || (echo "missing logo.png file..." && e
 cp -v syslinux.cfg "${ROOT}/boot/syslinux/"
 echo "Done."
 
-arch-chroot "${ROOT}"
-
 umount "${ROOT}/boot"
 umount "${ROOT}"
 
