@@ -13,7 +13,7 @@ mkemptydir() {
 # Clean previous builds
 echo "Unmount eventually mounted filesystems..."
 for fs in "${PROLOLIVE_DIR}.bind.light/boot" "${PROLOLIVE_DIR}.bind.light" overlay-intermediate overlay-intermediate/boot "${PROLOLIVE_DIR}/boot" "${PROLOLIVE_DIR}" ; do
-    canonical_path="$(realpath -m "$(pwd)/${fs}")" && grep -q canonical_path <<< $(mount) && umount "${1}"
+    mount | grep -q "${1}" && umount -R "${1}" 2>/dev/null || :
 done
 
 kpartx -r "${PROLOLIVE_IMG}" &>/dev/null || :
