@@ -16,7 +16,7 @@ for fs in "${PROLOLIVE_DIR}.bind.light/boot" "${PROLOLIVE_DIR}.bind.light" overl
     mount | grep -q "${1}" && umount -R "${1}" 2>/dev/null || :
 done
 
-kpartx -r "${PROLOLIVE_IMG}" &>/dev/null || :
+kpartx -sd "${PROLOLIVE_IMG}" &>/dev/null || :
 echo "Done."
 
 
@@ -180,6 +180,6 @@ echo "Unmounting filesystems..."
 umount "${BOOT}"
 echo "Done."
 
-kpartx -r "${PROLOLIVE_IMG}"
+kpartx -ds "${PROLOLIVE_IMG}"
 
 echo "The end."
