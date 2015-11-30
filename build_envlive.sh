@@ -89,7 +89,7 @@ pacstrap -C pacman.conf -c "${ROOT}/" boost ed firefox firefox-i18n-fr fpc \
 	 lxqt-runner lxqt-session openbox oxygen-icons pcmanfm-qt luajit mono \
 	 mono-basic mono-debugger nodejs ntp ntfs-3g ocaml openssh php python \
 	 python2 qtcreator rlwrap rxvt-unicode screen sddm tmux valgrind wget \
-	 xorg xorg-apps zsh
+	 xorg xorg-apps zsh vim emacs
 
 umount "${ROOT}/boot"
 umount "${ROOT}"
