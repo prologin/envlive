@@ -150,6 +150,11 @@ EOF
 # Create dirs who will be ramfs-mounted
 systemd-nspawn -D "${ROOT}" -u prologin mkdir /home/prologin/.cache /home/prologin/ramfs
 
+# Copy user configuration files
+cp -vr prologin/. "${ROOT}/home/prologin"
+systemd-nspawn -D "${ROOT}" chown -R prologin:prologin /home/prologin
+
+
 # Configure boot system
 echo "Installing syslinux..."
 dd if="${ROOT}/usr/lib/syslinux/bios/mbr.bin" of="/dev/${LOOP}" bs=440 count=1

@@ -11,15 +11,13 @@ TODO:
 - Utiliser une variable ${LOGOFILE} et rajouter un cp ${LOGOFILE} …/syslinux/logo.png
 - Adapter la config syslinux pour supporter un ${LOGOFILE}
 - Gérer proprement l'absence de ${LOGOFILE}
-- Trouver et/ou crafter un wallpaper frais pour le bureau, et éventuellement un pour syslinux.
-- Configurer lxqt et le reste, et envoyer un tar -cf home.tar.xz /home à ordiclic
 - Ajouter des lanceurs pour netbeans, eclipse, notepadqq, etc. pour un accès rapide sur le bureau
 - Ajouter un script pour générer la documentation (le fichier documentation.squashfs)
 
 CUSTOMISATION
-- Firefox  : thème, page d'accueil
-- Syslinux : logo.png
-- Bureau   : wallpaper
+- Firefox  : page d'accueil, pas de prompts de démarrage, interface épurée
+- Syslinux : boot-bg.png
+- Bureau   : fond d'écran
 - LXQT     : thème, launchers sur le bureau
 - Emacs    : .emacs
 - Vim      : .vimrc
