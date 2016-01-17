@@ -24,7 +24,8 @@ echo "Done."
 
 echo "Allocate prololive.img..."
 rm -f "${PROLOLIVE_IMG}"
-dd if=/dev/zero of="${PROLOLIVE_IMG}" bs=1M count=3824
+fallocate -l 3824M "${PROLOLIVE_IMG}"
+dd if=/dev/zero of="${PROLOLIVE_IMG}" bs=1M count=1 conv=notrunc
 echo "Done."
 
 # Partition the image disk file

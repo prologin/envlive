@@ -4,4 +4,4 @@ device: prololive.img
 unit: sectors
 
 prololive.img1 : start=        2048, size=     5783552, type=83, bootable
-prololive.img2 : start=     5785600, size=     2045952, type=83
+prololive.img2 : start=     5785600, size=     2043904, type=83
