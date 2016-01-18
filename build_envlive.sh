@@ -117,11 +117,15 @@ systemd-nspawn -D "${ROOT}" locale-gen
 cp -v sddm.conf "${ROOT}/etc/"
 systemd-nspawn -D "${ROOT}" systemctl enable sddm
 cp -v 00-keyboard.conf "${ROOT}/etc/X11/xorg.conf.d/"
+
+# Copy user configuration files
 cp -v .Xresources "${ROOT}/etc/skel/"
 systemd-nspawn -D "${ROOT}" mkdir -p /etc/skel/.config/Eric6
 cp -v eric6.ini "${ROOT}/etc/skel/.config/"
+cp -vr prologin/. "${ROOT}/etc/skel/"
 echo 'alias ocaml="rlwrap ocaml"' >> /etc/skel/.zshrc
 echo 'source /etc/profile.d/jre.sh' >> /etc/skel/.zshrc
+
 
 cat > "${ROOT}/etc/systemd/journald.conf" <<EOF
 [Journal]
@@ -149,10 +153,6 @@ EOF
 
 # Create dirs who will be ramfs-mounted
 systemd-nspawn -D "${ROOT}" -u prologin mkdir /home/prologin/.cache /home/prologin/ramfs
-
-# Copy user configuration files
-cp -vr prologin/. "${ROOT}/home/prologin"
-systemd-nspawn -D "${ROOT}" chown -R prologin:prologin /home/prologin
 
 
 # Configure boot system
