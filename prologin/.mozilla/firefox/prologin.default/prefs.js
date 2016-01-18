@@ -13,7 +13,7 @@ user_pref("browser.toolbarbuttons.introduced.pocket-button", true);
 user_pref("experiments.activeExperiment", false);
 
 # Homepage
-user_pref("browser.startup.homepage", "http://192.168.56.1:8081/");
+user_pref("browser.startup.homepage", "http://prologin/");
 
 # Don't open "welcome" tabs
 user_pref("browser.startup.homepage_override.mstone", "ignore");
