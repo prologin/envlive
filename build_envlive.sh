@@ -20,8 +20,6 @@ kpartx -sd "${PROLOLIVE_IMG}" &>/dev/null || :
 echo "Done."
 
 
-
-
 echo "Allocate prololive.img..."
 rm -f "${PROLOLIVE_IMG}"
 fallocate -l 3824M "${PROLOLIVE_IMG}"
@@ -90,7 +88,7 @@ pacstrap -C pacman.conf -c "${ROOT}/" boost ed firefox firefox-i18n-fr fpc \
 	 lxqt-runner lxqt-session openbox oxygen-icons pcmanfm-qt luajit mono \
 	 mono-basic mono-debugger nodejs ntp ntfs-3g ocaml openssh php python \
 	 python2 qtcreator rlwrap rxvt-unicode screen sddm tmux valgrind wget \
-	 xorg xorg-apps zsh vim emacs
+	 xorg xorg-apps zsh vim emacs networkmanager network-manager-applet
 
 umount "${ROOT}/boot"
 umount "${ROOT}"
@@ -117,6 +115,7 @@ systemd-nspawn -D "${ROOT}" locale-gen
 cp -v sddm.conf "${ROOT}/etc/"
 systemd-nspawn -D "${ROOT}" systemctl enable sddm
 cp -v 00-keyboard.conf "${ROOT}/etc/X11/xorg.conf.d/"
+systemd-nspawn -D "${ROOT}" systemctl enable NetworkManager.service
 
 # Copy user configuration files
 cp -v .Xresources "${ROOT}/etc/skel/"
@@ -162,7 +161,8 @@ mkdir -p "${ROOT}/boot/syslinux"
 cp -vr "${ROOT}"/usr/lib/syslinux/bios/*.c32 "${ROOT}/boot/syslinux/"
 extlinux --device "/dev/mapper/${LOOP}p1" --install "${ROOT}/boot/syslinux"
 
-cp -v logo.png "${ROOT}/boot/syslinux/" || (echo "missing logo.png file..." && exit 42)
+#cp -v logo.png "${ROOT}/boot/syslinux/" || (echo "missing logo.png file..." && exit 42)
+cp -v boot-bg.png "${ROOT}/boot/syslinux/" || (echo "missing boot-bg.png file..." && exit 42)
 cp -v syslinux.cfg "${ROOT}/boot/syslinux/"
 echo "Done."
 
