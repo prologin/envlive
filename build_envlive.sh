@@ -116,6 +116,8 @@ cp -v sddm.conf "${ROOT}/etc/"
 systemd-nspawn -D "${ROOT}" systemctl enable sddm
 cp -v 00-keyboard.conf "${ROOT}/etc/X11/xorg.conf.d/"
 systemd-nspawn -D "${ROOT}" systemctl enable NetworkManager.service
+systemd-nspawn -D "${ROOT}" /sbin/ldconfig -X
+
 
 # Copy user configuration files
 cp -v .Xresources "${ROOT}/etc/skel/"
