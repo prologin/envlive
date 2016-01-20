@@ -101,7 +101,7 @@ mount "/dev/mapper/${LOOP}p1" "${ROOT}/boot"
 pacstrap -C pacman.conf -c "${ROOT}/" codeblocks eclipse eric esotope-bfc-git \
 	 eric-i18n-fr fsharp geany ghc leafpad monodevelop \
 	 monodevelop-debugger-gdb netbeans notepadqq-bin openjdk7-doc \
-	 pycharm-community reptyr rsync samba scite
+	 pycharm-community reptyr rsync samba scite sublime-text
 
 # Configure system environment
 echo "System configuration..."
