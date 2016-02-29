@@ -100,8 +100,8 @@ ROOT="${PROLOLIVE_DIR}"
 mount -t overlay overlay -o "lowerdir=${PROLOLIVE_DIR}.big/system:${PROLOLIVE_DIR}.light/system,upperdir=${PROLOLIVE_DIR}.full/system,workdir=${PROLOLIVE_DIR}.full/work" "${ROOT}"
 mkdir -p "${ROOT}/boot"
 mount "/dev/mapper/${LOOP}p1" "${ROOT}/boot"
-pacstrap -C pacman.conf -c "${ROOT}/" codeblocks eclipse eric esotope-bfc-git \
-	 eric-i18n-fr fsharp geany ghc leafpad monodevelop \
+pacstrap -C pacman.conf -c "${ROOT}/" codeblocks eclipse-java eclipse-ecj eric \
+	 esotope-bfc-git eric-i18n-fr fsharp geany ghc leafpad monodevelop \
 	 monodevelop-debugger-gdb netbeans notepadqq-bin openjdk7-doc \
 	 pycharm-community reptyr rsync samba scite sublime-text
 
