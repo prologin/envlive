@@ -21,3 +21,5 @@ CUSTOMISATION
 - LXQT     : thème, launchers sur le bureau
 - Emacs    : .emacs
 - Vim      : .vimrc
+Pour pimper le système, il faut modifier le script pour placer les fichiers voulus dans /etc/skel
+ce qui permet par la suite de les placer dans le répertoire utilisateur prologin lors du build de l'image.
