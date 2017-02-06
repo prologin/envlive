@@ -39,7 +39,7 @@ install_bootloader () {
 }
 
 install_docs () {
-    mkdir -p "${ROOT}/home/prologin/.local/share/Zeal/Zeal/docsets"
-    cp -r docs/* "${ROOT}/home/prologin/.local/share/Zeal/Zeal/docsets"
-    systemd-nspawn -D "${ROOT}" -u root chown -R prologin:prologin /home/prologin/.local
+    mkdir -p "${1}/home/prologin/.local/share/Zeal/Zeal/docsets"
+    cp -r docs/* "${1}/home/prologin/.local/share/Zeal/Zeal/docsets"
+    systemd-nspawn -D "${1}" -u root chown -R prologin:prologin /home/prologin/.local
 }

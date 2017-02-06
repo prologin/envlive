@@ -18,7 +18,7 @@ prololive_img="${prololive_dir}.img"
 overlay_mount_hook_add  mount_boot
 overlay_umount_hook_add umount_boot
 
-if [[ "${RESET_SQ}" == 'y' || "${RESET_SQ}" == 'yes' ]]; then
+if [[ "${RESET_SQ}" == 'true' ]]; then
     warn "This run will reset squashfses."
     warn "Sleeping for 5 seconds..."
     sleep 5
@@ -28,7 +28,7 @@ fi
 ## Image allocation / partitionning
 ##
 
-log "Allocating prololive.img..."
+log "Allocating ${prololive_img}..."
 allocate_img "${prololive_img}"
 
 log "Partitionning the disk image"
@@ -111,6 +111,7 @@ systemd-nspawn -D "${ROOT}" useradd prologin -G games -m -p "$(echo "prologin" |
 systemd-nspawn -D "${ROOT}" -u prologin mkdir /home/prologin/.cache /home/prologin/ramfs
 
 log "Copy docs to prologin's home..."
+install_docs "${ROOT}"
 
 # Configure boot system
 log "Installing systemd-boot..."
@@ -122,7 +123,7 @@ BOOT="${prololive_dir}"
 
 mount "${dev_boot}" "${BOOT}"
 
-if [[ "${RESET_SQ}" == 'y' || "${RESET_SQ}" == 'yes' ]]; then
+if [[ "${RESET_SQ}" == 'true' ]]; then
     for mountpoint in "${roots[@]}" ; do
         rm -rf "${mountpoint}.squashfs"
     done
