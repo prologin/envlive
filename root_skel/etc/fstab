@@ -1,0 +1,3 @@
+LABEL=proloboot /boot                     vfat dmask=000,fmask=0111  defaults 0 0
+tmpfs           /home/prologin/.cache     tmpfs defaults 0 0
+tmpfs           /home/prologin/ramfs      tmpfs defaults 0 0
