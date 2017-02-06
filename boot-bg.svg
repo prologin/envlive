@@ -1,148 +1,20 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   version="1.1"
-   id="svg4888"
-   viewBox="0 0 1024 768.00001"
-   height="768"
-   width="1024">
-  <defs
-     id="defs4890" />
-  <metadata
-     id="metadata4893">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <g
-     transform="translate(0,-284.36207)"
-     id="layer1">
-    <g
-       transform="matrix(0.41122926,0,0,0.41122926,88.7264,640.71108)"
-       id="g5496">
-      <path
-         style="display:inline;opacity:1;fill:#33449d;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 773.85557,428.99098 0,297.6378 207.24184,119.16935 0,-198.42521 -69.08061,-39.72311 0,-99.2126 z"
-         id="path3354" />
-      <path
-         style="display:inline;fill:#ffeb01;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 773.85557,428.99098 268.64683,-93.55272 207.2418,119.16934 -176.5393,61.47751 -69.0806,-39.72312 -92.1075,32.07522 z"
-         id="path3357" />
-      <path
-         style="display:inline;fill:#ff1200;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 981.09741,845.79813 268.64679,-93.55273 0,-297.6378 -176.5393,61.47751 0,99.21259 -92.10749,32.07522 z"
-         id="path4159" />
-      <path
-         style="display:inline;fill:#c7c7c6;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 912.0168,508.43721 0,99.2126 69.08061,39.72311 92.10749,-32.07522 0,-99.21259 -69.0806,-39.72312 z"
-         id="path4244" />
-      <path
-         style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 873.63868,784.00661 0,-99.2126 38.37812,22.0684 0,-99.2126"
-         id="path4162" />
-      <path
-         style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 873.63868,684.79401 -30.7025,-17.65471 0,-49.6063 -69.08061,-39.72312"
-         id="path4164" />
-      <path
-         style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 1050.178,821.74171 0,-70.86614 130.4856,-45.4399 0,-148.8189 69.0806,-24.05641"
-         id="path4166" />
-      <path
-         style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 1180.6636,627.48292 -107.4587,37.42108 0,-49.6063"
-         id="path4168" />
-      <path
-         style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 842.93618,404.93457 69.08062,39.72311 199.5662,-69.49631"
-         id="path4216" />
-      <path
-         style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 1019.4755,407.23659 69.0806,39.72312 -84.4318,29.40228"
-         id="path4218" />
-      <path
-         style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 912.0168,607.64981 92.1075,-32.07522 69.0806,39.72311"
-         id="path4170" />
-      <path
-         style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 1004.1243,476.36199 0,99.2126"
-         id="path4172" />
-      <path
-         id="path4212"
-         style="display:inline;fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 1203.6905,785.99955 -69.0806,-39.72312 m 69.0806,138.9357 0,-99.21258 88.2697,-30.73876" />
-      <path
-         style="display:inline;fill:#33449d;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 1134.6099,746.27643 0,99.2126 69.0806,39.7231 0,-99.21258 z"
-         id="path4246" />
-      <path
-         style="display:inline;fill:#ff1200;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 1203.6905,785.99955 88.2697,-30.73876 0,99.21264 -88.2697,30.7387 z"
-         id="path4248" />
-      <path
-         style="display:inline;fill:#ffeb01;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 1134.6099,746.27643 88.2696,-30.73875 69.0807,39.72311 -88.2697,30.73876 z"
-         id="path4250" />
-    </g>
-    <flowRoot
-       style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Sans;font-style:normal;font-weight:normal;font-size:23.75px;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr"
-       id="flowRoot5532"
-       xml:space="preserve"><flowRegion
-         id="flowRegion5534"><rect
-           y="323.74216"
-           x="511.61719"
-           height="45.392479"
-           width="45.110458"
-           id="rect5536" /></flowRegion><flowPara
-         id="flowPara5538"></flowPara></flowRoot>    <flowRoot
-       style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Sans;font-style:normal;font-weight:normal;font-size:23.75px;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr"
-       id="flowRoot5540"
-       xml:space="preserve"><flowRegion
-         id="flowRegion5542"><rect
-           y="323.74216"
-           x="511.61719"
-           height="29.606251"
-           width="73.525673"
-           id="rect5544" /></flowRegion><flowPara
-         id="flowPara5546"></flowPara></flowRoot>    <g
-       transform="translate(0,19.190757)"
-       id="g5734">
-      <flowRoot
-         xml:space="preserve"
-         id="flowRoot5524"
-         style="font-style:normal;font-weight:normal;font-size:23.75px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;fill:#f2f2f2;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         transform="matrix(0.90382954,0,0,0.90382954,49.570363,594.86457)"><flowRegion
-           id="flowRegion5526"><rect
-             id="rect5528"
-             width="1020"
-             height="200"
-             x="0"
-             y="-7.1577001"
-             style="fill:#f2f2f2"
-             ry="0" /></flowRegion><flowPara
-           id="flowPara5530"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:137.5px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';text-align:center;text-anchor:middle;fill:#ffffff">Prologin</flowPara></flowRoot>      <text
-         xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:21.46595192px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         x="656.46014"
-         y="743.28778"
-         id="text5556"><tspan
-           id="tspan5558"
-           x="656.46014"
-           y="743.28778"
-           style="font-size:31.6340332px;letter-spacing:5.42297745px;fill:#ffffff"
-           dx="0">2016</tspan></text>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 768">
+  <g stroke="#000" stroke-width="3.3">
+    <path fill="#33449d" fill-rule="evenodd" d="M407 532.8v122.4l85.2 49v-81.6l-28.4-16.4v-40.8z" stroke-linejoin="round"/>
+    <path fill="#ffeb01" fill-rule="evenodd" d="M407 532.8l110.4-38.5 85.3 49-72.6 25.3-28-16.4-38 13.2z" stroke-linejoin="round"/>
+    <path fill="#ff1200" fill-rule="evenodd" d="M492.2 704.2l110.5-38.5V543.3L530 568.6v40.8l-37.8 13.2z" stroke-linejoin="round"/>
+    <path fill="#c7c7c6" fill-rule="evenodd" d="M463.8 565.4v40.8l28.4 16.4 38-13.2v-40.8l-28.5-16.4z" stroke-linejoin="round"/>
+    <path fill="none" d="M448 678.8V638l15.8 9v-40.8M448 638l-12.6-7.3v-20.4L407 594m113.6 100.3V665l53.6-18.6v-61.2l28.5-9.8"/>
+    <path fill="none" d="M574.2 614.4l-44 15.4v-20.4M435.4 523l28.4 16.2 82-28.6M508 523.8l28.4 16.4-34.7 12m-38 54l38-13.2 28.4 16.4m-28-57.2V593"/>
+    <path fill="none" d="M583.7 679.6l-28.4-16.4m28.4 57.2v-40.8L620 667" stroke-linejoin="round"/>
+    <path fill="#33449d" fill-rule="evenodd" d="M555.3 663.2V704l28.4 16.4v-40.8z" stroke-linejoin="round"/>
+    <path fill="#ff1200" fill-rule="evenodd" d="M583.7 679.6L620 667v40.7l-36.3 12.7z" stroke-linejoin="round"/>
+    <path fill="#ffeb01" fill-rule="evenodd" d="M555.3 663.2l36.3-12.6L620 667l-36.3 12.6z" stroke-linejoin="round"/>
+  </g>
+  <g fill="#f2f2f2" font-family="Sans">
+    <text x="252.5" y="634.1" stroke-width=".9" style="line-height:125%" font-size="126" letter-spacing="0" word-spacing="0" transform="translate(0 -265.17)">
+      Prologin
+    </text>
+    <text x="654.2" y="662.7" font-size="30" letter-spacing="6.7" transform="translate(0 -265.17)">@YEAR@</text>
   </g>
 </svg>
