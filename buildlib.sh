@@ -22,7 +22,7 @@ umount_boot () {
 }
 
 root_configure () {
-    rsync -avh --progress root_skel "${1}"
+    rsync -avh --progress root_skel/* "${1}"
     systemd-nspawn -D "${1}" ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
     systemd-nspawn -D "${1}" locale-gen
     systemd-nspawn -D "${1}" systemctl enable sddm

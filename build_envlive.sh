@@ -7,6 +7,11 @@ set -e
 . ./overlaylib.sh
 . ./logging.sh
 
+if [[ "${1}" == '--reset' ]]; then
+    RESET_SQ=true
+    shift
+fi
+
 help_string="Usage: $0 imagename rootpass"
 
 root_pass=${2?$help_string}
@@ -59,69 +64,75 @@ mkfs.fat  -F32 "${dev_boot}"       -n proloboot
 mkfs.ext4 -F   "${dev_persistent}" -L persistent
 
 
-##
-## Build overlays
-##
-
-roots=( "${prololive_dir}.light" \
-	    "${prololive_dir}.big" \
-	    "${prololive_dir}.full" )
-
-
-log "Create mountpoints and directories..."
-mkemptydir "${roots[@]}"
-
 ROOT="${prololive_dir}"
 
-log "Install core system packages on the lower layer"
-overlay_stack "${prololive_dir}.light" "${prololive_dir}"
-pacstrap -C pacman.conf -c "${ROOT}" "${packages_base[@]}"
+roots=( "${prololive_dir}.light" \
+	"${prololive_dir}.big" \
+	"${prololive_dir}.full" )
 
-log "Copy hook files..."
-cp -v prolomount.build   "${ROOT}/usr/lib/initcpio/install/prolomount"
-cp -v prolomount.runtime "${ROOT}/usr/lib/initcpio/hooks/prolomount"
+if [[ "${RESET_SQ}" == 'true' ]]; then
+
+    ##
+    ## Build overlays
+    ##
+
+    log "Create mountpoints and directories..."
+    mkemptydir "${roots[@]}"
+
+    log "Install core system packages on the lower layer"
+    overlay_stack "${prololive_dir}.light" "${prololive_dir}"
+    pacstrap -C pacman.conf -c "${ROOT}" "${packages_base[@]}"
+
+    log "Copy hook files..."
+    cp -v prolomount.build   "${ROOT}/usr/lib/initcpio/install/prolomount"
+    cp -v prolomount.runtime "${ROOT}/usr/lib/initcpio/hooks/prolomount"
 
 
-log "Generate the initcpio ramdisk..."
-cp -v mkinitcpio.conf "${ROOT}/etc/mkinitcpio.conf"
-systemd-nspawn -D "${ROOT}" mkinitcpio -p linux
+    log "Generate the initcpio ramdisk..."
+    cp -v mkinitcpio.conf "${ROOT}/etc/mkinitcpio.conf"
+    systemd-nspawn -D "${ROOT}" mkinitcpio -p linux
 
-log "Install interpreters (GHC apart) and graphical packages on the intermediate layer"
-overlay_stack "${prololive_dir}.big"
-pacstrap -C pacman.conf -c "${ROOT}/" "${packages_intermediate[@]}"
+    log "Install interpreters (GHC apart) and graphical packages on the intermediate layer"
+    overlay_stack "${prololive_dir}.big"
+    pacstrap -C pacman.conf -c "${ROOT}/" "${packages_intermediate[@]}"
 
-log "Install remaining and big packages on the top layer..."
-overlay_stack "${prololive_dir}.full"
-pacstrap -C pacman.conf -c "${ROOT}/" "${packages_big[@]}"
+    log "Install remaining and big packages on the top layer..."
+    overlay_stack "${prololive_dir}.full"
+    pacstrap -C pacman.conf -c "${ROOT}/" "${packages_big[@]}"
+
+    ##
+    ## Configure system environment
+    ##
+
+    log "System configuration..."
+    root_configure "${ROOT}"
+
+    # Configure passwords for prologin and root users
+    log "Configuring users and passwords..."
+    systemd-nspawn -D "${ROOT}" usermod root -p "$(echo "${root_pass}" | openssl passwd -1 -stdin)" -s /bin/zsh
+    systemd-nspawn -D "${ROOT}" useradd prologin -G games -m -p "$(echo "prologin" | openssl passwd -1 -stdin)" -s /bin/zsh
+
+    # Create dirs who will be ramfs-mounted
+    systemd-nspawn -D "${ROOT}" -u prologin mkdir /home/prologin/.cache /home/prologin/ramfs
+
+    log "Copy docs to prologin's home..."
+    install_docs "${ROOT}"
+
+    mkemptydir boot_backup
+    cp -vr "${ROOT}"/boot/* boot_backup
+
+    overlay_umount
+fi
+
+mount "${dev_boot}" "${ROOT}"
+
+if [[ "${RESET_SQ}" != 'true' ]]; then
+    cp -vr boot_backup/* "${ROOT}"
+fi
 
 
-##
-## Configure system environment
-##
-
-log "System configuration..."
-root_configure "${ROOT}"
-
-# Configure passwords for prologin and root users
-log "Configuring users and passwords..."
-systemd-nspawn -D "${ROOT}" usermod root -p "$(echo "${root_pass}" | openssl passwd -1 -stdin)" -s /bin/zsh
-systemd-nspawn -D "${ROOT}" useradd prologin -G games -m -p "$(echo "prologin" | openssl passwd -1 -stdin)" -s /bin/zsh
-
-# Create dirs who will be ramfs-mounted
-systemd-nspawn -D "${ROOT}" -u prologin mkdir /home/prologin/.cache /home/prologin/ramfs
-
-log "Copy docs to prologin's home..."
-install_docs "${ROOT}"
-
-# Configure boot system
 log "Installing systemd-boot..."
-install_bootloader "${ROOT}/boot"
-
-overlay_umount
-
-BOOT="${prololive_dir}"
-
-mount "${dev_boot}" "${BOOT}"
+install_bootloader "${ROOT}"
 
 if [[ "${RESET_SQ}" == 'true' ]]; then
     for mountpoint in "${roots[@]}" ; do
@@ -129,8 +140,7 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
     done
 fi
 
-# Creating squash filesystems
-echo "Create squash filesystems..."
+log "Create squash filesystems..."
 for mountpoint in "${roots[@]}" ; do
     if [ ! -f "${mountpoint}.squashfs" ]; then
 	mksquashfs "${mountpoint}" "${mountpoint}.squashfs" \
@@ -139,9 +149,11 @@ for mountpoint in "${roots[@]}" ; do
     fi
 done
 
-echo "Copy squash filesystems..."
+log "Copy squash filesystems..."
 for mountpoint in "${roots[@]}"; do
-    cp "${mountpoint}.squashfs" "${BOOT}/${mountpoint}.squashfs"
+    cp -v "${mountpoint}.squashfs" "${ROOT}/${mountpoint}.squashfs"
 done
+
+umount "${ROOT}"
 
 log "Done."
