@@ -72,7 +72,8 @@ install_syslinux () {
 }
 
 install_docs () {
-    mkdir -p "${1}/home/prologin/.local/share/Zeal/Zeal/docsets"
-    cp -r docs/* "${1}/home/prologin/.local/share/Zeal/Zeal/docsets"
+    mkdir -p "${1}/home/prologin/.local/share/Zeal/Zeal/"
+	[ -d "docs" ] && \
+		cp -r docs "${1}/home/prologin/.local/share/Zeal/Zeal/docsets"
     runcmd -u root chown -R prologin:prologin /home/prologin/.local
 }
