@@ -6,16 +6,34 @@ set -e
 . ./buildlib.sh
 . ./overlaylib.sh
 . ./logging.sh
+. ./filesystems.sh
 
-if [[ "${1}" == '--reset' ]]; then
+param_reset () {
     RESET_SQ=true
+}
+
+param_verbose () {
+    set -x
+}
+
+
+param_partmode () {
+    part_mode="$1"
+    __args_used=1
+}
+
+while [[ "${1:0:2}" == '--' && "${#1}" != 2 ]]; do
+    __fname="param_${1:2}"
     shift
-fi
+    __args_used=0
+    "$__fname" "$@"
+    shift "${__args_used}"
+done
 
 help_string="Usage: $0 imagename rootpass"
 
-root_pass=${2?$help_string}
-prololive_dir=${1?$help_string}
+root_pass="${2?$help_string}"
+prololive_dir="${1?$help_string}"
 prololive_img="${prololive_dir}.img"
 
 [ $UID -ne 0 ] && fail "This script must run as root !"
@@ -37,10 +55,13 @@ log "Allocating ${prololive_img}..."
 allocate_img "${prololive_img}"
 
 log "Partitionning the disk image"
-sfdisk "${prololive_img}" < prololive.dos
+partition "${prololive_img}"
 
 log "Generate device mappings for the disk image..."
 dev_loop=$(kpartx -asv "${prololive_img}" | grep -o "loop[0-9]" | tail -n1)
+
+dev_boot="/dev/mapper/${dev_loop}p${dev_boot_id}"
+dev_persistent="/dev/mapper/${dev_loop}p${dev_persistent_id}"
 
 
 finish () {
@@ -56,19 +77,15 @@ finish () {
 }
 trap finish EXIT
 
-dev_boot="/dev/mapper/${dev_loop}p1"
-dev_persistent="/dev/mapper/${dev_loop}p2"
 
 log "Format disk image partitions..."
-mkfs.fat  -F32 "${dev_boot}"       -n proloboot
-mkfs.ext4 -F   "${dev_persistent}" -L persistent
-
+format "${prololive_img}"
 
 ROOT="${prololive_dir}"
 
-roots=( "${prololive_dir}.light" \
+roots=( "${prololive_dir}.full" \
 	"${prololive_dir}.big" \
-	"${prololive_dir}.full" )
+	"${prololive_dir}.light" )
 
 if [[ "${RESET_SQ}" == 'true' ]]; then
 
@@ -90,7 +107,7 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
 
     log "Generate the initcpio ramdisk..."
     cp -v mkinitcpio.conf "${ROOT}/etc/mkinitcpio.conf"
-    systemd-nspawn -D "${ROOT}" mkinitcpio -p linux
+    runcmd mkinitcpio -p linux
 
     log "Install interpreters (GHC apart) and graphical packages on the intermediate layer"
     overlay_stack "${prololive_dir}.big"
@@ -109,11 +126,15 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
 
     # Configure passwords for prologin and root users
     log "Configuring users and passwords..."
-    systemd-nspawn -D "${ROOT}" usermod root -p "$(echo "${root_pass}" | openssl passwd -1 -stdin)" -s /bin/zsh
-    systemd-nspawn -D "${ROOT}" useradd prologin -G games -m -p "$(echo "prologin" | openssl passwd -1 -stdin)" -s /bin/zsh
+    runcmd usermod root \
+	   -p "$(passwd_encode "${root_pass}")" \
+	   -s /bin/zsh
+    runcmd useradd prologin -G games -m \
+	   -p "$(passwd_encode prologin)"\
+	   -s /bin/zsh
 
     # Create dirs who will be ramfs-mounted
-    systemd-nspawn -D "${ROOT}" -u prologin mkdir /home/prologin/.cache /home/prologin/ramfs
+    runcmd -u prologin mkdir /home/prologin/.cache /home/prologin/ramfs
 
     log "Copy docs to prologin's home..."
     install_docs "${ROOT}"
@@ -122,17 +143,21 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
     cp -vr "${ROOT}"/boot/* boot_backup
 
     overlay_umount
+else
+    overlay_list_set "${roots[@]}"
 fi
-
-mount "${dev_boot}" "${ROOT}"
 
 if [[ "${RESET_SQ}" != 'true' ]]; then
+    mount "${dev_boot}" "${ROOT}"
+    log "Copy the cached kernel and initramfs to /boot"
     cp -vr boot_backup/* "${ROOT}"
+    umount "${ROOT}"
 fi
 
-
-log "Installing systemd-boot..."
+log "Installing bootloader..."
 install_bootloader "${ROOT}"
+
+mount "${dev_boot}" "${ROOT}"
 
 if [[ "${RESET_SQ}" == 'true' ]]; then
     for mountpoint in "${roots[@]}" ; do
@@ -154,6 +179,7 @@ for mountpoint in "${roots[@]}"; do
     cp -v "${mountpoint}.squashfs" "${ROOT}/${mountpoint}.squashfs"
 done
 
+sync
 umount "${ROOT}"
 
 log "Done."

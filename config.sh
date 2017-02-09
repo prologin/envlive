@@ -1,6 +1,7 @@
 image_size='3824M'
+part_mode=gpt
 
-packages_base=( base base-devel )
+packages_base=( base base-devel syslinux )
 
 packages_intermediate=( boost ed firefox firefox-i18n-fr fpc \
 	 gambit-c gcc-ada gdb git grml-zsh-config htop jdk7-openjdk \
@@ -15,4 +16,6 @@ packages_big=( codeblocks eclipse-java eclipse-ecj eric \
 	 eric-i18n-fr fsharp geany ghc leafpad monodevelop \
 	 monodevelop-debugger-gdb netbeans  openjdk7-doc \
 	 reptyr rsync samba scite )
+
+packages_aur=( esotope-bfc-git notepadqq-bin notepadqq-common pycharm-community sublime-text )
 # esotope-bfc-git notepadqq-bin pycharm-community sublime-text

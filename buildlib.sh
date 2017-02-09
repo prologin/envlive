@@ -6,6 +6,14 @@ mkemptydir() {
     done
 }
 
+runcmd () {
+    systemd-nspawn -D "${ROOT}" "$@"
+}
+
+passwd_encode () {
+    echo "${1}" | openssl passwd -1 -stdin
+}
+
 allocate_img () {
     rm -f "${1}"
     fallocate -l "${image_size}" "${1}"
@@ -23,23 +31,48 @@ umount_boot () {
 
 root_configure () {
     rsync -avh --progress root_skel/* "${1}"
-    systemd-nspawn -D "${1}" ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
-    systemd-nspawn -D "${1}" locale-gen
-    systemd-nspawn -D "${1}" systemctl enable sddm
-    systemd-nspawn -D "${1}" systemctl enable NetworkManager.service
-    systemd-nspawn -D "${1}" /sbin/ldconfig -X
+    runcmd bash -c '\
+ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
+locale-gen
+systemctl enable sddm
+systemctl enable NetworkManager.service
+/sbin/ldconfig -X'
 
     echo 'alias ocaml="rlwrap ocaml"'   >> "${1}/etc/skel/.zshrc"
     echo 'source /etc/profile.d/jre.sh' >> "${1}/etc/skel/.zshrc"
 }
 
-install_bootloader () {
-    bootctl --path="${1}" install --no-variables
+install_systemd_boot () {
+    mount
+    if [[ "$part_mode" == 'gpt' ]]; then
+	bootctl --path="${1}" install --no-variables
+    else
+
+	mkdir -p "${1}/EFI/systemd/"
+	cp /usr/lib/systemd/boot/efi/systemd-bootx64.efi "${1}/EFI/systemd/"
+	mkdir -p "${1}/loader/entries"
+	echo "timeout 3" > "${1}/loader/loader.conf"
+    fi
     cp arch.conf "${1}/loader/entries/"
+}
+
+install_syslinux () {
+    mount "${dev_boot}" "${1}"
+    mkdir -p "${1}/syslinux"
+    cp -vr /usr/lib/syslinux/bios/*.c32 "${1}/syslinux/"
+    cp -v syslinux.cfg "${1}/syslinux/"
+    cp -v boot-bg.png "${1}/syslinux/" || (
+	echo "missing boot-bg.png file..."
+	exit 2
+    )
+    umount "${1}"
+
+    dd conv=notrunc if='/usr/lib/syslinux/bios/mbr.bin' of="${prololive_img}" bs=440 count=1
+    syslinux --install "${dev_boot}" --directory "syslinux"
 }
 
 install_docs () {
     mkdir -p "${1}/home/prologin/.local/share/Zeal/Zeal/docsets"
     cp -r docs/* "${1}/home/prologin/.local/share/Zeal/Zeal/docsets"
-    systemd-nspawn -D "${1}" -u root chown -R prologin:prologin /home/prologin/.local
+    runcmd -u root chown -R prologin:prologin /home/prologin/.local
 }

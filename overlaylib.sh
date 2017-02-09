@@ -29,6 +29,11 @@ overlay_list () {
     printf '%s\n' "${__overlay_list[@]}"
 }
 
+overlay_list_set () {
+    __overlay_list=("${@}")
+}
+
+
 overlay_umount() {
     for hook in "${__overlay_umount_hooks[@]}"; do
 	"${hook}" "${__overlay_mounted}"
@@ -47,6 +52,12 @@ overlay_mount() {
         echo ">> overlay_mount: overlay_list is empty" 1>&2
         return 1
     fi
+
+    if [[ "${1}" == '' ]]; then
+        echo ">> overlay_mount: missing root argument" 1>&2
+        return 1
+    fi
+
 
     if [[ "${#__overlay_list[@]}" == 1 ]]; then
         "${__overlay_mount_command}" --bind "${__overlay_list}" "${1}"
