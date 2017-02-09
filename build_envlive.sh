@@ -58,10 +58,10 @@ log "Partitionning the disk image"
 partition "${prololive_img}"
 
 log "Generate device mappings for the disk image..."
-dev_loop=$(kpartx -asv "${prololive_img}" | grep -o "loop[0-9]" | tail -n1)
+dev_loop=$(losetup --partscan --find --show "${prololive_img}")
 
-dev_boot="/dev/mapper/${dev_loop}p${dev_boot_id}"
-dev_persistent="/dev/mapper/${dev_loop}p${dev_persistent_id}"
+dev_boot="${dev_loop}p${dev_boot_id}"
+dev_persistent="${dev_loop}p${dev_persistent_id}"
 
 
 finish () {
@@ -73,7 +73,7 @@ finish () {
     fi
     "${log_cmd}" "Unmounting eventually mounted filesystems..."
     umount -R "${prololive_dir}" 2>/dev/null || :
-    kpartx -sd "${prololive_img}" &>/dev/null || :
+    losetup -d "${dev_loop}" &>/dev/null || :
 }
 trap finish EXIT
 
@@ -94,7 +94,7 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
     ##
 
     log "Create mountpoints and directories..."
-    mkemptydir "${roots[@]}"
+    mkemptydir "${prololive_dir}" "${roots[@]}"
 
     log "Install core system packages on the lower layer"
     overlay_stack "${prololive_dir}.light" "${prololive_dir}"

@@ -42,8 +42,7 @@ install_dos_bootloader () {
 	echo "missing boot-bg.png file..."
 	exit 2
     )
-    dd conv=notrunc if='/usr/lib/syslinux/bios/mbr.bin' of="${prololive_img}" bs=440 count=1
-    #dd if='/usr/lib/syslinux/bios/mbr.bin' of="${dev_loop}" bs=440 count=1
+    dd if='/usr/lib/syslinux/bios/mbr.bin' of="${dev_boot}" bs=440 count=1
     extlinux --device "${dev_boot}"  --install "${1}/boot/syslinux/"
 }
 

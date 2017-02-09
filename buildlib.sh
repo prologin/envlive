@@ -17,7 +17,7 @@ passwd_encode () {
 allocate_img () {
     rm -f "${1}"
     fallocate -l "${image_size}" "${1}"
-    dd if=/dev/zero of="${1}" bs=1M count=1 conv=notrunc
+    #dd if=/dev/zero of="${1}" bs=1M count="${image_size}" conv=notrunc
 }
 
 mount_boot () {
