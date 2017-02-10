@@ -1,5 +1,6 @@
 image_size='3824M'
-part_mode=gpt
+part_mode='gpt'
+aur_cache='pkg_root'
 
 packages_base=( base base-devel syslinux )
 
@@ -17,5 +18,5 @@ packages_big=( codeblocks eclipse-java eclipse-ecj eric \
 	 monodevelop-debugger-gdb netbeans  openjdk7-doc \
 	 reptyr rsync samba scite )
 
-packages_aur=( esotope-bfc-git notepadqq-bin notepadqq-common pycharm-community sublime-text )
+packages_aur=( esotope-bfc-git notepadqq pycharm-community sublime-text )
 # esotope-bfc-git notepadqq-bin pycharm-community sublime-text

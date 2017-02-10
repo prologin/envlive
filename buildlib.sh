@@ -10,6 +10,22 @@ runcmd () {
     systemd-nspawn -D "${ROOT}" "$@"
 }
 
+isinarr () {
+    local needle="$1"
+    shift
+    local haystack_e
+    for haystack_e in "$@"; do
+	if [[ "${haystack_e}" == "${needle}" ]]; then
+	    return 0
+	fi
+    done
+    return 1
+}
+
+section_disabled () {
+    isinarr "$1" "${build_ignore[@]}"
+}
+
 passwd_encode () {
     echo "${1}" | openssl passwd -1 -stdin
 }

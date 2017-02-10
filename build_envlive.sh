@@ -16,9 +16,19 @@ param_verbose () {
     set -x
 }
 
+build_user="$SUDO_USER"
+param_builduser () {
+    build_user="$1"
+    __args_used=1
+}
 
 param_partmode () {
     part_mode="$1"
+    __args_used=1
+}
+
+param_ignore () {
+    IFS=$':' read -r -a build_ignore <<< "$1"
     __args_used=1
 }
 
@@ -29,6 +39,9 @@ while [[ "${1:0:2}" == '--' && "${#1}" != 2 ]]; do
     "$__fname" "$@"
     shift "${__args_used}"
 done
+
+[[ "$build_user" != '' ]] || fail "Could find a default build user. \
+Please use either --builduser or sudo"
 
 help_string="Usage: $0 imagename rootpass"
 
@@ -94,44 +107,65 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
     ##
 
     log "Create mountpoints and directories..."
-    mkemptydir "${prololive_dir}" "${roots[@]}"
+    printf '%s\n' "${prololive_dir}" "$(for root in ${roots[@]}; do section_disabled ${root##*.} || echo "$root"; done)"
+    mkemptydir "${prololive_dir}" $(for root in ${roots[@]}; do section_disabled ${root##*.} || echo "$root"; done)
 
     log "Install core system packages on the lower layer"
     overlay_stack "${prololive_dir}.light" "${prololive_dir}"
-    pacstrap -C pacman.conf -c "${ROOT}" "${packages_base[@]}"
+    section_disabled light || pacstrap -C pacman.conf -c "${ROOT}" "${packages_base[@]}"
 
-    log "Copy hook files..."
-    cp -v prolomount.build   "${ROOT}/usr/lib/initcpio/install/prolomount"
-    cp -v prolomount.runtime "${ROOT}/usr/lib/initcpio/hooks/prolomount"
+    section_disabled initcpio || (
+	log "Copy hook files..."
+	cp -v prolomount.build   "${ROOT}/usr/lib/initcpio/install/prolomount"
+	cp -v prolomount.runtime "${ROOT}/usr/lib/initcpio/hooks/prolomount"
 
-
-    log "Generate the initcpio ramdisk..."
-    cp -v mkinitcpio.conf "${ROOT}/etc/mkinitcpio.conf"
-    runcmd mkinitcpio -p linux
+	log "Generate the initcpio ramdisk..."
+	cp -v mkinitcpio.conf "${ROOT}/etc/mkinitcpio.conf"
+	runcmd mkinitcpio -p linux
+    )
 
     log "Install interpreters (GHC apart) and graphical packages on the intermediate layer"
     overlay_stack "${prololive_dir}.big"
-    pacstrap -C pacman.conf -c "${ROOT}/" "${packages_intermediate[@]}"
+    section_disabled big || pacstrap -C pacman.conf -c "${ROOT}/" "${packages_intermediate[@]}"
 
     log "Install remaining and big packages on the top layer..."
     overlay_stack "${prololive_dir}.full"
-    pacstrap -C pacman.conf -c "${ROOT}/" "${packages_big[@]}"
+    section_disabled full || (
+	pacstrap -C pacman.conf -c "${ROOT}/" "${packages_big[@]}"
 
-    ##
-    ## Configure system environment
-    ##
+	##
+	## Configure system environment
+	##
 
-    log "System configuration..."
-    root_configure "${ROOT}"
+	log "System configuration..."
+	root_configure "${ROOT}"
 
-    # Configure passwords for prologin and root users
-    log "Configuring users and passwords..."
-    runcmd usermod root \
-	   -p "$(passwd_encode "${root_pass}")" \
-	   -s /bin/zsh
-    runcmd useradd prologin -G games -m \
-	   -p "$(passwd_encode prologin)"\
-	   -s /bin/zsh
+	# Configure passwords for prologin and root users
+	log "Configuring users and passwords..."
+	runcmd usermod root \
+	       -p "$(passwd_encode "${root_pass}")" \
+	       -s /bin/zsh
+	runcmd useradd prologin -G games -m \
+	       -p "$(passwd_encode prologin)"\
+	       -s /bin/zsh
+    )
+
+    section_disabled aur || (
+	log "Building AUR packages..."
+	mkdir -p "${aur_cache}"
+	chown "${build_user}" "${aur_cache}"
+	runcmd pacman -Sy
+	for package in "${packages_aur[@]}"; do
+	    sudo -u "${build_user}" PKGDEST="$(realpath "${aur_cache}")" \
+		 pacaur --noconfirm --noedit -m "$package"
+	done
+
+	log "Installing AUR packages..."
+	rm -rf "${ROOT}/root/aurpkgs"
+	cp -r "${aur_cache}" "${ROOT}/root/aurpkgs"
+	runcmd sh -c 'pacman -U --noconfirm /root/aurpkgs/*'
+	rm -r "${ROOT}/root/aurpkgs"
+    )
 
     # Create dirs who will be ramfs-mounted
     runcmd -u prologin mkdir /home/prologin/.cache /home/prologin/ramfs
