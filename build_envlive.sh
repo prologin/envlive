@@ -209,7 +209,7 @@ done
 
 log "Copy squash filesystems..."
 for mountpoint in "${roots[@]}"; do
-    cp -v "${mountpoint}.squashfs" "${ROOT}/${mountpoint}.squashfs"
+    cp -v "${mountpoint}.squashfs" "${ROOT}/prololive.${mountpoint##*.}.squashfs"
 done
 
 sync
