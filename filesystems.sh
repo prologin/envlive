@@ -51,7 +51,7 @@ _install_dos_bootloader () {
     cp -vr "${1}"/usr/lib/syslinux/bios/*.c32 "${1}/boot/syslinux/"
     cp -v syslinux.cfg "${1}/boot/syslinux/"
     cp -v boot-bg.png "${1}/boot/syslinux/" || fail "missing boot-bg.png file..."
-    dd if="/usr/lib/syslinux/bios/${2}.bin" of="${dev_loop}" bs=440 count=1
+    dd conv=notrunc if="/usr/lib/syslinux/bios/${2}.bin" of="${dev_loop}" bs=440 count=1
 }
 
 install_dos_bootloader () {
@@ -72,14 +72,20 @@ install_dos_efi_bootloader () {
 
     _install_dos_bootloader "$1" mbr
 
-    overlay_umount
+    umount_boot "$1"
     syslinux --directory "syslinux" --install "${dev_boot}"
-    overlay_mount "$1"
+    mount_boot "$1"
 }
 
 install_gpt_mbr_bootloader () {
     install_gpt_bootloader "$1"
-    install_dos_bootloader "$1" gptmbr
+    _install_dos_bootloader "$1" gptmbr
+
+    sgdisk "${dev_loop}" --attributes=1:set:2
+
+    umount_boot "$1"
+    syslinux --directory "syslinux" --install "${dev_boot}"
+    mount_boot "$1"
 }
 
 install_bootloader () {
