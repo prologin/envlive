@@ -43,7 +43,8 @@ format () {
 
 install_gpt_bootloader () {
     bootctl --path="${1}/boot" install --no-variables
-    cp arch.conf "${1}/boot/loader/entries/"
+    cp -v bootctl/*.conf "${1}/boot/loader/entries/"
+    echo "timeout 5" > "${1}/boot/loader/loader.conf"
 }
 
 _install_dos_bootloader () {
@@ -66,9 +67,9 @@ install_dos_efi_bootloader () {
     done
 
     mkdir -p "${1}/boot/loader/entries"
-    cp arch.conf "${1}/boot/loader/entries/"
+    cp -v bootctl/*.conf "${1}/boot/loader/entries/"
 
-    echo "timeout 3" > "${1}/boot/loader/loader.conf"
+    echo "timeout 5" > "${1}/boot/loader/loader.conf"
 
     _install_dos_bootloader "$1" mbr
 
