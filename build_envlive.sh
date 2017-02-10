@@ -152,8 +152,7 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
 
     section_disabled aur || (
 	log "Building AUR packages..."
-	mkdir -p "${aur_cache}"
-	chown "${build_user}" "${aur_cache}"
+	sudo -u "${build_user}" mkdir -p "${aur_cache}"
 	runcmd pacman -Sy
 	for package in "${packages_aur[@]}"; do
 	    sudo -u "${build_user}" PKGDEST="$(realpath "${aur_cache}")" \
