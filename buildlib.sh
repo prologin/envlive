@@ -94,3 +94,20 @@ install_docs () {
 		cp -r docs "${1}/home/prologin/.local/share/Zeal/Zeal/docsets"
     runcmd -u root chown -R prologin:prologin /home/prologin/.local
 }
+
+
+probe_finish () {
+    local exit_code="$?"
+    local log_cmd='log'
+    if [[ "${exit_code}" != 0 ]]; then
+	warn "The script failed !"
+	log_cmd='warn'
+    fi
+    "${log_cmd}" "Unmounting eventually mounted filesystems..."
+    umount -R "${prololive_dir}" 2>/dev/null || :
+    losetup -d "${dev_loop}" &>/dev/null || :
+}
+
+probe_img () {
+    losetup --partscan --find --show "$1"
+}

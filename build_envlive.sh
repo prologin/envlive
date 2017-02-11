@@ -31,25 +31,11 @@ log "Partitionning the disk image"
 partition "${prololive_img}"
 
 log "Generate device mappings for the disk image..."
-dev_loop=$(losetup --partscan --find --show "${prololive_img}")
+dev_loop=$(probe_img "${prololive_img}")
+trap probe_finish EXIT
 
 dev_boot="${dev_loop}p${dev_boot_id}"
 dev_persistent="${dev_loop}p${dev_persistent_id}"
-
-
-finish () {
-    local exit_code="$?"
-    local log_cmd='log'
-    if [[ "${exit_code}" != 0 ]]; then
-	warn "The script failed !"
-	log_cmd='warn'
-    fi
-    "${log_cmd}" "Unmounting eventually mounted filesystems..."
-    umount -R "${prololive_dir}" 2>/dev/null || :
-    losetup -d "${dev_loop}" &>/dev/null || :
-}
-trap finish EXIT
-
 
 log "Format disk image partitions..."
 format "${prololive_img}"
