@@ -7,47 +7,7 @@ set -e
 . ./overlaylib.sh
 . ./logging.sh
 . ./filesystems.sh
-
-param_reset () {
-    RESET_SQ=true
-}
-
-param_verbose () {
-    set -x
-}
-
-build_user="$SUDO_USER"
-param_builduser () {
-    build_user="$1"
-    __args_used=1
-}
-
-param_partmode () {
-    part_mode="$1"
-    __args_used=1
-}
-
-param_ignore () {
-    IFS=$':' read -r -a build_ignore <<< "$1"
-    __args_used=1
-}
-
-while [[ "${1:0:2}" == '--' && "${#1}" != 2 ]]; do
-    __fname="param_${1:2}"
-    shift
-    __args_used=0
-    "$__fname" "$@"
-    shift "${__args_used}"
-done
-
-[[ "$build_user" != '' ]] || fail "Could find a default build user. \
-Please use either --builduser or sudo"
-
-help_string="Usage: $0 imagename rootpass"
-
-root_pass="${2?$help_string}"
-prololive_dir="${1?$help_string}"
-prololive_img="${prololive_dir}.img"
+. ./params.sh
 
 [ $UID -ne 0 ] && fail "This script must run as root !"
 
