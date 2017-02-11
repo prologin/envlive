@@ -1,3 +1,24 @@
+# Envlive, a live environment script for contests.
+# Copyright (C) 2016  Alexis Cassaigne <alexis.cassaigne@gmail.com>
+# Copyright (C) 2017  Théophile Bastian <theophile.bastian@prologin.org>
+# Copyright (C) 2017  Victor Collod <victor.collod@prologin.org>
+# Copyright (C) 2017  Association Prologin <info@prologin.org>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+. ./logging.sh
+
 mkemptydir() {
     while [[ "$#" > 0 ]]; do
 	rm -rf "${1}"
@@ -96,18 +117,36 @@ install_docs () {
 }
 
 
-probe_finish () {
+mount_hook () {
+    "${1}" "Recursively umounting the root..."
+    umount -R "${prololive_dir}" 2>/dev/null || :
+}
+
+probe_hook () {
+    "${1}" "Detaching the loop device..."
+    losetup -d "${dev_loop}" &>/dev/null || :
+}
+
+probe_img () {
+    losetup --partscan --find --show "$1"
+}
+
+__finish_hooks=( )
+
+finish_hook_add () {
+    __finish_hooks+=( "${@}" )
+}
+
+finish_hooks () {
     local exit_code="$?"
     local log_cmd='log'
     if [[ "${exit_code}" != 0 ]]; then
 	warn "The script failed !"
 	log_cmd='warn'
     fi
-    "${log_cmd}" "Unmounting eventually mounted filesystems..."
-    umount -R "${prololive_dir}" 2>/dev/null || :
-    losetup -d "${dev_loop}" &>/dev/null || :
-}
+    "${log_cmd}" "Running exit hooks..."
 
-probe_img () {
-    losetup --partscan --find --show "$1"
+    for hook in "${__finish_hooks[@]}"; do
+	"${hook}" "${log_cmd}"
+    done
 }

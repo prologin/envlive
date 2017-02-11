@@ -1,4 +1,21 @@
 #!/bin/bash
+# Envlive, a live environment script for contests.
+# Copyright (C) 2016  Alexis Cassaigne <alexis.cassaigne@gmail.com>
+# Copyright (C) 2017  Victor Collod <victor.collod@prologin.org>
+# Copyright (C) 2017  Association Prologin <info@prologin.org>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 set -e
 
@@ -13,6 +30,7 @@ set -e
 
 overlay_mount_hook_add  mount_boot
 overlay_umount_hook_add umount_boot
+trap finish_hooks EXIT
 
 if [[ "${RESET_SQ}" == 'true' ]]; then
     warn "This run will reset squashfses."
@@ -32,13 +50,14 @@ partition "${prololive_img}"
 
 log "Generate device mappings for the disk image..."
 dev_loop=$(probe_img "${prololive_img}")
-trap probe_finish EXIT
+finish_hook_add probe_hook
 
 dev_boot="${dev_loop}p${dev_boot_id}"
 dev_persistent="${dev_loop}p${dev_persistent_id}"
 
 log "Format disk image partitions..."
 format "${prololive_img}"
+finish_hook_add mount_hook
 
 ROOT="${prololive_dir}"
 
@@ -53,7 +72,6 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
     ##
 
     log "Create mountpoints and directories..."
-    printf '%s\n' "${prololive_dir}" "$(for root in ${roots[@]}; do section_disabled ${root##*.} || echo "$root"; done)"
     mkemptydir "${prololive_dir}" $(for root in ${roots[@]}; do section_disabled ${root##*.} || echo "$root"; done)
 
     log "Install core system packages on the lower layer"
