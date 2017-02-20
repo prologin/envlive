@@ -59,13 +59,15 @@ prololive_mount_handler() {
 
     mkdir -p ${persistent_dir}/workdir ${persistent_dir}/rootfs
 
+
+#    msg -n ":: Mounting the documentation filesystem... "
+#    mkdir -p ${root}/home/prologin/.local/share/Zeal/Zeal/docsets
+#    chown -R prologin:prologin ${root}/home/prologin/.local/
+#    mount ${image_doc} ${root}/home/prologin/.local/share/Zeal/Zeal/docsets || launch_interactive_shell
+#    msg "Done."
+
     msg -n ":: Mounting overlayfs... "
     mount -t overlay overlay -o lowerdir=/run/mountpoints/full:/run/mountpoints/big:/run/mountpoints/light/,upperdir=${persistent_dir}/rootfs,workdir=${persistent_dir}/workdir ${root} || launch_interactive_shell
-    msg "Done."
-
-    msg -n ":: Mounting the documentation filesystem... "
-    mkdir -p ${root}/home/prologin/documentation
-    mount ${image_doc} ${root}/home/prologin/documentation || launch_interactive_shell
     msg "Done."
     return 0
 }
