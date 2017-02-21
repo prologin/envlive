@@ -66,6 +66,12 @@ umount_boot () {
     umount "${1}/boot"
 }
 
+generate_bootsplash () {
+    local splash_name="boot-bg.$(date +%Y).png"
+    make "$splash_name"
+    ln -sf "$splash_name" "$1"
+}
+
 root_configure () {
     rsync -avh --progress root_skel/* "${1}"
     runcmd bash -c '\

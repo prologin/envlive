@@ -69,6 +69,7 @@ _install_dos_bootloader () {
     mkdir -p "${1}/boot/syslinux"
     cp -vr "${1}"/usr/lib/syslinux/bios/*.c32 "${1}/boot/syslinux/"
     cp -v syslinux.cfg "${1}/boot/syslinux/"
+    generate_bootsplash boot-bg.png
     cp -v boot-bg.png "${1}/boot/syslinux/" || fail "missing boot-bg.png file..."
     dd conv=notrunc if="/usr/lib/syslinux/bios/${2}.bin" of="${dev_loop}" bs=440 count=1
 }
