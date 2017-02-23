@@ -33,4 +33,9 @@ if egrep '^.+[0-9]+$' <<< "${output_device}" 1>/dev/null; then
     fail "output file must not be a partition (like /dev/sdb1) but a whole block device (/dev/sdb)"
 fi
 
-/usr/bin/dd status=progress bs=10M if="${1}" of="${2}" oflag=direct
+/usr/bin/dd status=progress \
+	    bs=10M \
+	    oflag=direct \
+	    conv=fsync \
+	    if="${input_image}" \
+	    of="${output_device}"
