@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Envlive, a live environment script for contests.
 # Copyright (C) 2017  Victor Collod <victor.collod@prologin.org>
 # Copyright (C) 2017  Association Prologin <info@prologin.org>
@@ -19,5 +19,18 @@
 help_string="Usage: $0 prololive.img /dev/device"
 input_image="${1?$help_string}"
 output_device="${2?$help_string}"
+
+function fail() {
+    echo -e "$(tput setaf 1)${@}\n${help_string}$(tput sgr0)"
+    exit 1
+}
+
+if [[ ! -b "${output_device}" ]] ; then
+    fail "the second argument must be a block device (like /dev/sdc)"
+fi
+
+if egrep '^.+[0-9]+$' <<< "${output_device}" 1>/dev/null; then
+    fail "output file must not be a partition (like /dev/sdb1) but a whole block device (/dev/sdb)"
+fi
 
 /usr/bin/dd status=progress bs=10M if="${1}" of="${2}" oflag=direct
