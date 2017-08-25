@@ -31,10 +31,11 @@ packages_intermediate=( gedit firefox firefox-i18n-fr \
 	 rxvt-unicode screen sddm tmux ttf-dejavu \
 	 valgrind wget xorg xf86-video-intel xorg-apps zsh vim emacs \
 	  
- 	 ipython jupyter jupyter-notebook bpython mathjax emacs-python-mode \
+ 	 ipython bpython emacs-python-mode \
 	 xfce4-terminal teeworlds \
 	 networkmanager network-manager-applet xterm )
 
-packages_big=( rsync samba scite )
+packages_big=( rsync samba scite pavucontrol \
+	       jupyter mathjax jupyter-notebook )
 
 packages_aur=( pycharm-community sublime-text openarena  python-pygame )
