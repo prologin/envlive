@@ -78,7 +78,7 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
 
     log "Install core system packages on the lower layer"
     overlay_stack "${prololive_dir}.light" "${prololive_dir}"
-    section_disabled light || pacstrap -C pacman.conf -c "${ROOT}" "${packages_base[@]}"
+    section_disabled light || install_packages "${ROOT}" "${packages_base[@]}"
 
     section_disabled initcpio || (
 	log "Copy hook files..."
@@ -92,12 +92,12 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
 
     log "Install interpreters (GHC apart) and graphical packages on the intermediate layer"
     overlay_stack "${prololive_dir}.big"
-    section_disabled big || pacstrap -C pacman.conf -c "${ROOT}/" "${packages_intermediate[@]}"
+    section_disabled big || install_packages "${ROOT}/" "${packages_intermediate[@]}"
 
     log "Install remaining and big packages on the top layer..."
     overlay_stack "${prololive_dir}.full"
     section_disabled full || (
-	pacstrap -C pacman.conf -c "${ROOT}/" "${packages_big[@]}"
+        install_packages "${ROOT}/" "${packages_big[@]}"
 
 	##
 	## Configure system environment

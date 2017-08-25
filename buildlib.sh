@@ -67,8 +67,7 @@ umount_boot () {
 }
 
 generate_bootsplash () {
-    local splash_name="boot-bg.$(date +%Y).png"
-    make "$splash_name"
+    local splash_name="boot-bg-gcc.png"
     ln -sf "$splash_name" "$1"
 }
 
@@ -151,4 +150,8 @@ finish_hooks () {
     for hook in "${__finish_hooks[@]}"; do
 	"${hook}" "${log_cmd}"
     done
+}
+
+install_packages () {
+    pacstrap -C pacman.conf -c "$@"
 }
