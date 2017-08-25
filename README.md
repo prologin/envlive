@@ -8,6 +8,7 @@
   - arch-install-scripts
   - gptfdisk
   - rsync
+  - inkscape (for the boot bg)
 
 - Required AUR packages:
   - pacaur
