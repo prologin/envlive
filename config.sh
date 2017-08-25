@@ -23,6 +23,7 @@ aur_cache='pkg_root'
 packages_base=( base base-devel syslinux )
 
 packages_intermediate=( gedit firefox firefox-i18n-fr \
+	 gnome-keyring lxqt-notificationd \
 	 gdb git grml-zsh-config htop \
 	 lxqt-common lxqt-config lxqt-panel lxqt-policykit lxqt-qtplugin \
 	 lxqt-runner lxqt-session openbox oxygen-icons pcmanfm-qt \
