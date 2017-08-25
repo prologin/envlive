@@ -72,7 +72,7 @@ generate_bootsplash () {
 }
 
 root_configure () {
-    rsync -avh --progress root_skel/* "${1}"
+    rsync -avh --progress --chown root:root root_skel/* "${1}"
     runcmd bash -c '\
 ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
 locale-gen
