@@ -79,11 +79,7 @@ ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
 locale-gen
 systemctl enable sddm
 systemctl enable NetworkManager.service
-/sbin/ldconfig -X
-archlinux-java set java-8-openjdk'
-
-    echo 'alias ocaml="rlwrap ocaml"'   >> "${1}/etc/skel/.zshrc"
-    echo 'source /etc/profile.d/jre.sh' >> "${1}/etc/skel/.zshrc"
+/sbin/ldconfig -X'
 }
 
 install_systemd_boot () {

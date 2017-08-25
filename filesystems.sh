@@ -35,7 +35,7 @@ partition () {
 
 dos_format () {
     mkfs.ext4 -O ^64bit -F "${dev_boot}" -L proloboot
-    mkfs.ext4 -F "${dev_persistent}" -L persistent
+    mkfs.fat -F 32 "${dev_persistent}" -n persistent
 }
 
 gpt_format () {

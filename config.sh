@@ -17,23 +17,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 image_size='3824M'
-part_mode='gpt'
+part_mode='dos'
 aur_cache='pkg_root'
 
 packages_base=( base base-devel syslinux )
 
-packages_intermediate=( boost ed firefox firefox-i18n-fr fpc \
-	 gambit-c gcc-ada gdb git grml-zsh-config htop jdk7-openjdk \
+packages_intermediate=( gedit firefox firefox-i18n-fr \
+	 gdb git grml-zsh-config htop \
 	 lxqt-common lxqt-config lxqt-panel lxqt-policykit lxqt-qtplugin \
-	 lxqt-runner lxqt-session openbox oxygen-icons pcmanfm-qt luajit mono \
-	 mono-basic mono-debugger nodejs ntp ntfs-3g ocaml openssh php python \
-	 python2 qtcreator rlwrap rxvt-unicode screen sddm tmux ttf-dejavu \
+	 lxqt-runner lxqt-session openbox oxygen-icons pcmanfm-qt \
+	 ntp ntfs-3g openssh python \
+	 rxvt-unicode screen sddm tmux ttf-dejavu \
 	 valgrind wget xorg xf86-video-intel xorg-apps zsh vim emacs \
-	 networkmanager network-manager-applet xterm zeal )
+	  
+ 	 ipython jupyter jupyter-notebook bpython mathjax emacs-python-mode \
+	 xfce4-terminal teeworlds \
+	 networkmanager network-manager-applet xterm )
 
-packages_big=( codeblocks eclipse-java eclipse-ecj eric \
-	 eric-i18n-fr fsharp geany ghc leafpad monodevelop \
-	 monodevelop-debugger-gdb netbeans  openjdk7-doc \
-	 reptyr rsync samba scite )
+packages_big=( rsync samba scite )
 
-packages_aur=( esotope-bfc-git notepadqq pycharm-community sublime-text )
+packages_aur=( pycharm-community sublime-text openarena  python-pygame )

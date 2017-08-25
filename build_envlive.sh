@@ -65,6 +65,8 @@ roots=( "${prololive_dir}.full" \
 	"${prololive_dir}.big" \
 	"${prololive_dir}.light" )
 
+mkdir -p "${roots[@]}" "${ROOT}"
+
 if [[ "${RESET_SQ}" == 'true' ]]; then
 
     ##
@@ -144,7 +146,7 @@ else
     overlay_list_set "${roots[@]}"
 fi
 
-if [[ "${RESET_SQ}" != 'true' ]]; then
+if [[ "${RESET_SQ}" != 'true' && -d boot_backup ]]; then
     mount "${dev_boot}" "${ROOT}"
     log "Copy the cached kernel and initramfs to /boot"
     cp -vr boot_backup/* "${ROOT}"

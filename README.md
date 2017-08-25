@@ -7,6 +7,7 @@
   - squashfs-tools
   - arch-install-scripts
   - gptfdisk
+  - rsync
 
 - Required AUR packages:
   - pacaur
