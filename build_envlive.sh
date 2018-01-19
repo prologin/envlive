@@ -79,7 +79,7 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
     overlay_stack "${prololive_dir}.light" "${prololive_dir}"
     section_disabled light || pacstrap -C pacman.conf -c "${ROOT}" "${packages_base[@]}"
 
-    section_disabled initcpio || (
+    section_disabled initcpio || {
 	log "Copy hook files..."
 	cp -v prolomount.build   "${ROOT}/usr/lib/initcpio/install/prolomount"
 	cp -v prolomount.runtime "${ROOT}/usr/lib/initcpio/hooks/prolomount"
@@ -87,7 +87,7 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
 	log "Generate the initcpio ramdisk..."
 	cp -v mkinitcpio.conf "${ROOT}/etc/mkinitcpio.conf"
 	runcmd mkinitcpio -p linux
-    )
+    }
 
     log "Install interpreters (GHC apart) and graphical packages on the intermediate layer"
     overlay_stack "${prololive_dir}.big"
@@ -95,7 +95,7 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
 
     log "Install remaining and big packages on the top layer..."
     overlay_stack "${prololive_dir}.full"
-    section_disabled full || (
+    section_disabled full || {
 	pacstrap -C pacman.conf -c "${ROOT}/" "${packages_big[@]}"
 
 	##
@@ -111,11 +111,11 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
 	       -p "$(passwd_encode "${root_pass}")" \
 	       -s /bin/zsh
 	runcmd useradd prologin -G games -m \
-	       -p "$(passwd_encode prologin)"\
+	       -p "$(passwd_encode prologin)" \
 	       -s /bin/zsh
-    )
+    }
 
-    section_disabled aur || (
+    section_disabled aur || {
 	log "Building AUR packages..."
 	sudo -u "${build_user}" mkdir -p "${aur_cache}"
 	runcmd pacman -Sy
@@ -129,7 +129,7 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
 	cp -r "${aur_cache}" "${ROOT}/root/aurpkgs"
 	runcmd sh -c 'pacman -U --noconfirm /root/aurpkgs/*'
 	rm -r "${ROOT}/root/aurpkgs"
-    )
+    }
 
     # Create dirs who will be ramfs-mounted
     runcmd -u prologin mkdir /home/prologin/.cache /home/prologin/ramfs
