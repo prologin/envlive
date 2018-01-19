@@ -86,10 +86,13 @@ overlay_mount() {
 "upperdir=${upperdir},"\
 "workdir=${__overlay_workdir}"
 
+
+	rm -rf -- "${__overlay_workdir}"
+	mkdir -- "${__overlay_workdir}"
 	"${__overlay_mount_command}" \
-	    -t overlay \
+	    -t overlay overlay\
 	    -o "${mount_options}" \
-	    overlay "${1}"
+	    "${1}"
     fi
 
     __overlay_mounted="${1}"
