@@ -65,6 +65,7 @@ roots=( "${prololive_dir}.full" \
 	"${prololive_dir}.big" \
 	"${prololive_dir}.light" )
 
+
 if [[ "${RESET_SQ}" == 'true' ]]; then
 
     ##
@@ -72,7 +73,7 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
     ##
 
     log "Create mountpoints and directories..."
-    mkemptydir "${prololive_dir}" $(for root in ${roots[@]}; do section_disabled ${root##*.} || echo "$root"; done)
+    mkemptydir boot_backup "${prololive_dir}" $(for root in ${roots[@]}; do section_disabled ${root##*.} || echo "$root"; done)
 
     log "Install core system packages on the lower layer"
     overlay_stack "${prololive_dir}.light" "${prololive_dir}"
@@ -136,20 +137,18 @@ if [[ "${RESET_SQ}" == 'true' ]]; then
     log "Copy docs to prologin's home..."
     install_docs "${ROOT}"
 
-    mkemptydir boot_backup
-    cp -vr "${ROOT}"/boot/* boot_backup
-
     overlay_umount
 else
     overlay_list_set "${roots[@]}"
 fi
 
-if [[ "${RESET_SQ}" != 'true' ]]; then
-    mount "${dev_boot}" "${ROOT}"
-    log "Copy the cached kernel and initramfs to /boot"
-    cp -vr boot_backup/* "${ROOT}"
-    umount "${ROOT}"
-fi
+
+mount "${dev_boot}" "${ROOT}"
+
+log "Copy the cached kernel and initramfs to /boot"
+cp -vr boot_backup/* "${ROOT}"
+
+umount "${ROOT}"
 
 log "Installing bootloader..."
 install_bootloader "${ROOT}"
@@ -177,6 +176,7 @@ for mountpoint in "${roots[@]}"; do
 done
 
 sync
+
 umount "${ROOT}"
 
 log "Done."

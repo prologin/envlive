@@ -58,8 +58,8 @@ allocate_img () {
 }
 
 mount_boot () {
-    mkdir -p "${1}/boot"
-    mount "${dev_boot}" "${1}/boot"
+    mkdir -p "${1}/boot" boot_backup
+    mount --bind boot_backup "${1}/boot"
 }
 
 umount_boot () {
@@ -125,7 +125,7 @@ install_docs () {
 
 mount_hook () {
     "${1}" "Recursively umounting the root..."
-    umount -R "${prololive_dir}" 2>/dev/null || :
+    umount -R "${ROOT}" 2>/dev/null || :
 }
 
 probe_hook () {
