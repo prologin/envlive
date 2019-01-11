@@ -32,6 +32,6 @@ packages_intermediate=( boost ed firefox firefox-i18n-fr fpc \
 
 packages_big=( codeblocks eclipse-java eclipse-ecj eric \
 	 eric-i18n-fr geany ghc leafpad netbeans  openjdk7-doc \
-	 reptyr rsync samba pycharm-community-edition code )
+	 reptyr rsync samba pycharm-community-edition code atom )
 
 packages_aur=( esotope-bfc-git sublime-text-dev )
