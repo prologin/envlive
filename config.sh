@@ -28,10 +28,11 @@ packages_intermediate=( boost ed firefox firefox-i18n-fr fpc \
 	 nodejs ntp ntfs-3g ocaml openssh php python \
 	 python2 qtcreator rlwrap rxvt-unicode screen sddm tmux ttf-dejavu \
 	 valgrind wget xorg xf86-video-intel xorg-apps zsh vim emacs \
-	 networkmanager network-manager-applet xterm zeal )
+	 networkmanager network-manager-applet xterm zeal \
+     jre8-openjdk-headless jdk8-openjdk jre8-openjdk)
 
 packages_big=( codeblocks eclipse-java eclipse-ecj eric \
-	 eric-i18n-fr geany ghc leafpad netbeans  openjdk7-doc \
+	 geany ghc leafpad netbeans  openjdk7-doc \
 	 reptyr rsync samba pycharm-community-edition code atom )
 
 packages_aur=( esotope-bfc-git sublime-text-dev )
