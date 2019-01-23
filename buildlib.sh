@@ -89,6 +89,7 @@ archlinux-java set java-8-openjdk'
 install_systemd_boot () {
     mount
     if [[ "$part_mode" == 'gpt' ]]; then
+    export SYSTEMD_RELAX_ESP_CHECKS=1
 	bootctl --path="${1}" install --no-variables
     else
 
