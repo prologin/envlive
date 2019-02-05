@@ -29,13 +29,17 @@ if [[ ! -b "${output_device}" ]] ; then
     fail "the second argument must be a block device (like /dev/sdc)"
 fi
 
+if findmnt -- "${output_device}" >/dev/null; then
+    fail "the target device is mounted. you may be trying to wipe your disk, be careful"
+fi
+
 if egrep '^.+[0-9]+$' <<< "${output_device}" 1>/dev/null; then
     fail "output file must not be a partition (like /dev/sdb1) but a whole block device (/dev/sdb)"
 fi
 
 /usr/bin/dd status=progress \
-	    bs=10M \
-	    oflag=direct \
-	    conv=fsync \
-	    if="${input_image}" \
-	    of="${output_device}"
+            bs=10M \
+            oflag=direct \
+            conv=fsync \
+            if="${input_image}" \
+            of="${output_device}"
