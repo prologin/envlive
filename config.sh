@@ -24,7 +24,7 @@ packages_base=( base base-devel syslinux )
 
 packages_intermediate=( boost ed firefox firefox-i18n-fr fpc \
 	 gambit-c gcc-ada gdb git grml-zsh-config htop jdk7-openjdk \
-	 lxqt lua mono \
+	 lxqt lua mono tree \
 	 nodejs ntp ntfs-3g ocaml openssh php python \
 	 python2 qtcreator rlwrap rxvt-unicode screen sddm tmux ttf-dejavu \
 	 valgrind wget xorg xf86-video-intel xorg-apps zsh vim emacs \
