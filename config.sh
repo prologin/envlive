@@ -20,7 +20,7 @@ image_size='3824M'
 part_mode='gpt'
 aur_cache='pkg_root'
 
-packages_base=( base base-devel syslinux )
+packages_base=( base base-devel syslinux linux linux-firmware )
 
 packages_intermediate=( boost ed firefox firefox-i18n-fr fpc \
 	 gambit-c gcc-ada gdb git grml-zsh-config htop jdk7-openjdk \
