@@ -7,6 +7,7 @@
   - squashfs-tools
   - arch-install-scripts
   - gptfdisk
+  - inkscape
 
 - Required AUR packages:
   - pacaur
