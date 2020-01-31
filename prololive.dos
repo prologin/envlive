@@ -1,7 +1,7 @@
 label: dos
-label-id: 0xe4b9a144
+label-id: 0x549ddabe
 device: prololive.img
 unit: sectors
 
-prololive.img1 : start=        2048, size=     5783552, type=83, bootable
-prololive.img2 : start=     5785600, size=     2043904, type=83
+prololive.img1 : start=        2048, size=     8388608, type=83, bootable
+prololive.img2 : start=     8390656, size=     6291456, type=83
