@@ -1,10 +1,10 @@
 label: gpt
-label-id: 961799D8-D3A0-4A11-9BB1-3DABAC38F587
+label-id: D2965256-77A1-C441-B0C6-B7C6BC3D8724
 device: prololive.img
 unit: sectors
 first-lba: 2048
-last-lba: 7831518
+last-lba: 15663070
 
-prololive.img1 : start=        2048, size=     5218304, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=A93B8742-02C7-44D0-A0E8-48558C506C88, name="EFI Filesystem"
-prololive.img2 : start=     5220352, size=     2097152, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=763A2826-6905-42D6-8D61-28445AE69ACE, name="Persistent storage"
-prololive.img3 : start=     7317504, size=        2048, type=21686148-6449-6E6F-744E-656564454649, uuid=EFFCF2DF-E4D3-4286-9AEC-71EB63FE154D, name="BIOS Boot"
+prololive.img1 : start=        2048, size=     8388608, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=091ABE4B-2DB0-854C-A4F6-75FE202A17FD, name="EFI Filesystem"
+prololive.img2 : start=     8390656, size=     6291456, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=F5911FD4-CD3B-394B-95FA-6E1A93D0C431, name="Persistent storage"
+prololive.img3 : start=    14682112, size=        2048, type=21686148-6449-6E6F-744E-656564454649, uuid=6E3F5C78-8912-E245-AE34-BA5189D7286B, name="BIOS Boot"
