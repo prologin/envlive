@@ -8,6 +8,7 @@
   - arch-install-scripts
   - gptfdisk
   - inkscape
+  - mtools
 
 - Required AUR packages:
   - pacaur
