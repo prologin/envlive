@@ -89,7 +89,7 @@ install_dos_efi_bootloader () {
     mount "${dev_boot}" "$1"
     for file in "${1}/EFI/"{systemd/systemd-bootx64.efi,Bootx64.efi}; do
 	mkdir -p -- "$(dirname "${file}")"
-	cp /usr/lib/systemd/efi/systemd-bootx64.efi "${file}"
+	cp /usr/lib/systemd/boot/efi/systemd-bootx64.efi "${file}"
     done
 
     mkdir -p "${1}/loader/entries"
