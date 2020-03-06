@@ -29,7 +29,8 @@ packages_intermediate=( boost ed firefox firefox-i18n-fr fpc \
 	 python2 qtcreator rlwrap rxvt-unicode screen sddm tmux ttf-dejavu \
 	 valgrind wget xorg xf86-video-intel xorg-apps zsh vim emacs \
 	 networkmanager network-manager-applet xterm zeal \
-         jre8-openjdk-headless jdk8-openjdk jre8-openjdk rust mono )
+         jre8-openjdk-headless jdk8-openjdk jre8-openjdk rust mono \
+     vscode-extensions )
 
 packages_big=( codeblocks eclipse-java eclipse-ecj eric \
 	 geany ghc leafpad netbeans  openjdk7-doc \
