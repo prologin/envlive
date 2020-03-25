@@ -25,6 +25,14 @@ A `logo.png` file is also required so that it can be used as a boot splash.
 
 You can add new configuration files by adding them into `root_skel/etc/skel/`.
 
+# How to
+
+## Test Firefox profile
+
+Copy <root_skel/etc/skel/.mozilla/firefox/prologin.default> to
+`~/.mozilla/firefox/prologin.default`, then go to <about:profiles> and
+create a new profile using this directory.
+
 # TODO
 - Contribute to Zeal so that it is able to download documentation from the command line.
 - Add launchers for netbeans, eclipse, notepadqq, ...
