@@ -29,8 +29,8 @@ You can add new configuration files by adding them into `root_skel/etc/skel/`.
 
 ## Test Firefox profile
 
-Copy <root_skel/etc/skel/.mozilla/firefox/prologin.default> to
-`~/.mozilla/firefox/prologin.default`, then go to <about:profiles> and
+Copy `root_skel/etc/skel/.mozilla/firefox/prologin.default` to
+`~/.mozilla/firefox/prologin.default`, then go to `about:profiles` and
 create a new profile using this directory.
 
 # TODO
